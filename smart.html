@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lama Smart | Интеграции и Умные вывески</title>
+  <meta name="description" content="Превращаем статичную рекламу в цифровые инструменты. Умные экраны, медиафасады, CRM-интеграции и IoT-датчики.">
+  <meta name="theme-color" content="#050a07">
+  
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================
+       01. ТОКЕНЫ (Хакерский зеленый + Лазерный красный)
+       ========================================= */
+    :root {
+      --bg: #f4fcf6;
+      --bg-2: #ffffff;
+      --fg: #0a1a10;
+      --muted: #4b6354;
+      --line: rgba(10,26,16,.1);
+      --accent: #059669; 
+      --accent-2: #e11d48; 
+      --accent-glow: rgba(5,150,105,.15);
+      --blob-a: rgba(5,150,105,.15);
+      --blob-b: rgba(225,29,72,.1);
+      --font-h: 'Unbounded', system-ui, sans-serif;
+      --font-b: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --wrap: min(1240px, 100% - 40px);
+      --rad: 20px;
+      --trans: .4s cubic-bezier(.2,.7,.2,1);
+    }
+
+    [data-theme="dark"] {
+      --bg: #050a07;
+      --bg-2: #0a1410;
+      --fg: #e2fceb;
+      --muted: #6b8c7a;
+      --line: rgba(226,252,235,.1);
+      --accent: #00ff41; /* Матричный зеленый */
+      --accent-2: #ff003c; 
+      --accent-glow: rgba(0,255,65,.2);
+      --blob-a: rgba(0,255,65,.15);
+      --blob-b: rgba(255,0,60,.15);
+    }
+
+    /* =========================================
+       02. СБРОС И БАЗА
+       ========================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 var(--font-b);
+      transition: background var(--trans), color var(--trans);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; transition: color .3s; }
+    ul { list-style: none; }
+    h1, h2, h3, h4 { font-family: var(--font-h); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+    h1 { font-size: clamp(2.5rem, 6vw, 5.5rem); font-weight: 800; margin-bottom: 24px; }
+    h2 { font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 24px; }
+    h3 { font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 16px; }
+    p { color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.15rem); max-width: 65ch; }
+    
+    /* Код */
+    .code-text { font-family: var(--font-mono); color: var(--accent); font-size: 0.9rem; }
+    .cursor-blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* =========================================
+       03. УТИЛИТЫ
+       ========================================= */
+    .wrap { width: var(--wrap); margin-inline: auto; }
+    .section { padding: clamp(60px, 10vw, 120px) 0; position: relative; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 16px 32px; border-radius: 100px; font: 600 1rem var(--font-b);
+      border: 1px solid var(--line); background: transparent; color: var(--fg);
+      cursor: pointer; transition: all .3s ease; text-align: center;
+    }
+    .btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .btn-primary { background: var(--accent); color: #0a0a0b; border-color: var(--accent); font-weight: 800; }
+    .btn-primary:hover { box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-2px); background: var(--accent); color: #0a0a0b; }
+
+    .tag { display: inline-block; padding: 6px 14px; border-radius: 100px; border: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; font-family: var(--font-mono); }
+
+    /* =========================================
+       04. КОМПОНЕНТЫ
+       ========================================= */
+    .blob {
+      position: fixed; border-radius: 50%; filter: blur(100px);
+      pointer-events: none; z-index: -1; will-change: transform;
+      transition: background .5s ease;
+    }
+    .blob-a { width: 60vmax; height: 60vmax; top: -20vmax; left: -10vmax; background: radial-gradient(circle, var(--blob-a), transparent 60%); }
+    .blob-b { width: 70vmax; height: 70vmax; bottom: -30vmax; right: -20vmax; background: radial-gradient(circle, var(--blob-b), transparent 65%); }
+    @media (hover: none), (prefers-reduced-motion: reduce) { .blob { display: none; } }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: blur(16px); border-bottom: 1px solid var(--line);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .logo { font-family: var(--font-h); font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; }
+    .nav { display: flex; gap: 24px; align-items: center; }
+    .nav a { font-size: 0.95rem; font-weight: 500; }
+    .nav a:hover { color: var(--accent); }
+    .nav-cta { display: none; }
+    
+    .controls { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); cursor: pointer; display: grid; place-items: center;
+      transition: all .3s;
+    }
+    .icon-btn:hover { border-color: var(--fg); background: var(--bg-2); }
+    .lang-btn { width: auto; padding: 0 16px; border-radius: 100px; font-weight: 600; font-size: .85rem; }
+    
+    .burger { display: none; }
+    
+    .mobile-menu {
+      position: fixed; top: 72px; left: 0; right: 0; bottom: 0;
+      background: var(--bg); z-index: 99;
+      padding: 40px; display: flex; flex-direction: column; gap: 24px;
+      transform: translateX(100%); transition: transform .4s ease;
+      border-top: 1px solid var(--line);
+    }
+    .mobile-menu.active { transform: none; }
+    .mobile-menu a { font-family: var(--font-h); font-size: 1.5rem; font-weight: 600; }
+    body.menu-open { overflow: hidden; }
+
+    .card {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--rad);
+      padding: 40px; transition: transform .4s, border-color .4s;
+    }
+    .card:hover { transform: translateY(-6px); border-color: var(--accent); }
+    .card-icon { font-size: 2rem; margin-bottom: 24px; color: var(--accent); }
+
+    .marquee { overflow: hidden; white-space: nowrap; border-block: 1px solid var(--line); padding: 20px 0; display: flex; background: var(--bg-2); }
+    .marquee-content { display: flex; gap: 40px; animation: scroll 20s linear infinite; font-family: var(--font-mono); font-size: 1.1rem; text-transform: uppercase; color: var(--muted); }
+    @keyframes scroll { to { transform: translateX(-50%); } }
+
+    .faq-item { border-bottom: 1px solid var(--line); padding: 24px 0; }
+    .faq-q { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-family: var(--font-h); font-size: 1.2rem; font-weight: 500; }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+    .faq-a p { margin-top: 16px; }
+    .faq-item.active .faq-a { max-height: 200px; }
+
+    .form-group { margin-bottom: 20px; }
+    input, textarea {
+      width: 100%; padding: 16px 20px; border-radius: 12px; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); font: 1rem var(--font-b); transition: border-color .3s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    ::placeholder { color: var(--muted); opacity: 0.6; }
+    .form-success { color: var(--accent); font-weight: 600; padding: 20px; border: 1px solid var(--accent); border-radius: 12px; text-align: center; }
+
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .marquee-content { animation: none; }
+    }
+
+    .stat-num { font-family: var(--font-mono); font-size: clamp(3rem, 6vw, 5rem); font-weight: 800; color: var(--accent); }
+
+    /* Специфичные стили для Smart (Терминал) */
+    .terminal {
+      background: #000; border: 1px solid var(--line); border-radius: 12px;
+      padding: 24px; font-family: var(--font-mono); font-size: 0.9rem;
+      color: #00ff41; box-shadow: 0 0 30px rgba(0,255,65,0.1);
+    }
+    .terminal-header { display: flex; gap: 8px; margin-bottom: 16px; }
+    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; background: #333; }
+    .terminal-dot:nth-child(1) { background: #ff5f56; }
+    .terminal-dot:nth-child(2) { background: #ffbd2e; }
+    .terminal-dot:nth-child(3) { background: #27c93f; }
+    .terminal-line { margin-bottom: 8px; }
+    .terminal-line span { color: #888; }
+
+    @media (max-width: 1080px) {
+      .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .split { grid-template-columns: 1fr; gap: 40px; }
+      .nav-cta { display: none; }
+    }
+    @media (max-width: 880px) {
+      .nav { display: none; }
+      .burger { display: grid; }
+    }
+    @media (max-width: 620px) {
+      .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .header-inner { justify-content: space-between; }
+      .card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-a" aria-hidden="true"></div>
+  <div class="blob blob-b" aria-hidden="true"></div>
+
+  <header>
+    <div class="wrap header-inner">
+      <a href="index.html" class="logo">ЛАМА<span style="color:var(--accent)">.</span></a>
+      <nav class="nav">
+        <a href="index.html" data-i18n="nav_home">Главная</a>
+        <a href="#services" data-i18n="nav_srv">Услуги</a>
+        <a href="#portfolio" data-i18n="nav_cases">Кейсы</a>
+        <a href="#contact" data-i18n="nav_contact">Контакты</a>
+      </nav>
+      <div class="controls">
+        <a href="#contact" class="btn btn-primary nav-cta" style="padding: 10px 20px; font-size: 0.9rem;" data-i18n="nav_cta">Подключить</a>
+        <button class="icon-btn" data-theme-btn onclick="toggleTheme()" aria-pressed="true" aria-label="Тема">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button class="icon-btn lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+        <button class="icon-btn burger" onclick="toggleMenu()" aria-label="Меню">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" onclick="toggleMenu()" data-i18n="nav_home">Главная</a>
+    <a href="#services" onclick="toggleMenu()" data-i18n="nav_srv">Услуги</a>
+    <a href="#portfolio" onclick="toggleMenu()" data-i18n="nav_cases">Кейсы</a>
+    <a href="#contact" onclick="toggleMenu()" data-i18n="nav_contact">Контакты</a>
+    <a href="#contact" onclick="toggleMenu()" class="btn btn-primary" style="margin-top: 24px;" data-i18n="nav_cta">Подключить</a>
+  </div>
+
+  <main>
+    <!-- 01. HERO -->
+    <section class="section" style="min-height: 100svh; display: flex; align-items: center; padding-top: 100px;">
+      <div class="wrap split">
+        <div>
+          <div class="tag reveal" data-i18n="hero_tag">> Lama Smart — Интеграции_</div>
+          <h1 class="reveal" style="--d: .1s" data-i18n="hero_title">Твоя вывеска теперь — компьютер.</h1>
+          <p class="reveal" style="--d: .2s; font-size: 1.3rem; margin-bottom: 40px;" data-i18n="hero_sub">Превращаем статичный металл в цифровой инструмент. Умные экраны, CRM-интеграции и IoT-датчики. Собирай данные, управляй контентом, увеличивай конверсию.</p>
+          <div class="reveal" style="--d: .3s; display: flex; gap: 16px; flex-wrap: wrap;">
+            <a href="#contact" class="btn btn-primary" data-i18n="hero_btn">Подключить систему</a>
+            <a href="#portfolio" class="btn" data-i18n="hero_btn2">Смотреть кейсы</a>
+          </div>
+        </div>
+        <div class="reveal terminal" style="--d: .4s; height: 400px; display: flex; flex-direction: column; justify-content: center;">
+          <div class="terminal-header">
+            <div class="terminal-dot"></div><div class="terminal-dot"></div><div class="terminal-dot"></div>
+          </div>
+          <div class="terminal-line"><span>root@lama:~$</span> init smart_sign --mode=dynamic</div>
+          <div class="terminal-line"><span>[OK]</span> Connecting to CRM...</div>
+          <div class="terminal-line"><span>[OK]</span> Sensor data received (Temp: +18C)</div>
+          <div class="terminal-line"><span>[OK]</span> Fetching weather API...</div>
+          <div class="terminal-line"><span>[OK]</span> Rain detected. Updating content...</div>
+          <div class="terminal-line"><span>root@lama:~$</span> <span class="cursor-blink">█</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02. ДОВЕРИЕ (Marquee) -->
+    <div class="marquee">
+      <div class="marquee-content">
+        <span>REST API</span> <span>•</span> <span>CRM (Bitrix/amo)</span> <span>•</span> <span>IoT Sensors</span> <span>•</span> <span>WebSockets</span> <span>•</span> <span>Cloud Sync</span> <span>•</span> <span>NFC / QR</span> <span>•</span>
+        <span>REST API</span> <span>•</span> <span>CRM (Bitrix/amo)</span> <span>•</span> <span>IoT Sensors</span> <span>•</span> <span>WebSockets</span> <span>•</span> <span>Cloud Sync</span> <span>•</span> <span>NFC / QR</span> <span>•</span>
+      </div>
+    </div>
+
+    <!-- 03. ПРОБЛЕМА (PAS - Problem) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <div class="tag reveal" style="border-color: var(--accent-2); color: var(--accent-2);" data-i18n="p_tag">Ошибка 404</div>
+          <h2 class="reveal" style="--d: .1s" data-i18n="p_title">Статика не работает. Она просто висит.</h2>
+          <p class="reveal" style="--d: .2s" data-i18n="p_text">Обычная вывеска не знает, сколько людей прошло мимо. Она не может предложить скидку в дождь или сменить акцию в обеденный перерыв. Вы платите за рекламу, но не получаете ни одного байта обратной связи.</p>
+        </div>
+        <div class="reveal" style="--d: .3s; height: 300px; background: var(--bg-2); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; font-size: 4rem; color: var(--accent-2);">
+          🚫
+        </div>
+      </div>
+    </section>
+
+    <!-- 04. РЕШЕНИЕ (PAS - Solution) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal terminal" style="--d: .1s; height: 300px; display: flex; flex-direction: column; justify-content: center;">
+          <div class="terminal-line"><span>[INFO]</span> Smart sign online.</div>
+          <div class="terminal-line"><span>[DATA]</span> 1240 impressions today.</div>
+          <div class="terminal-line"><span>[CRM]</span> 15 leads generated.</div>
+          <div class="terminal-line"><span>[OK]</span> ROI increased by 40%.</div>
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="s_title">Дай рекламе мозги.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="s_text">Мы устанавливаем в ваши конструкции контроллеры и подключаем их к облаку. Теперь вы управляете вывеской со смартфона. Меняете контент по расписанию, собираете аналитику с датчиков движения и синхронизируете экраны с CRM.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn btn-primary" data-i18n="s_btn">Обсудить интеграцию</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05. УСЛУГИ (Interest) -->
+    <section class="section" id="services">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="srv_title">Наши цифровые модули</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s">
+            <div class="card-icon">📺</div>
+            <h3 data-i18n="s1_title">Умные экраны</h3>
+            <p data-i18n="s1_text">Вывод динамического контента. Расписание, погода, курсы валют.</p>
+          </div>
+          <div class="card reveal" style="--d: .2s">
+            <div class="card-icon">🔗</div>
+            <h3 data-i18n="s2_title">CRM-интеграции</h3>
+            <p data-i18n="s2_text">Синхронизация с Bitrix24, amoCRM. Заявки напрямую с экрана.</p>
+          </div>
+          <div class="card reveal" style="--d: .3s">
+            <div class="card-icon">📡</div>
+            <h3 data-i18n="s3_title">IoT-датчики</h3>
+            <p data-i18n="s3_text">Подсчет трафика, анализ температуры, уровня шума и влажности.</p>
+          </div>
+          <div class="card reveal" style="--d: .4s">
+            <div class="card-icon">📱</div>
+            <h3 data-i18n="s4_title">NFC и QR-взаимодействие</h3>
+            <p data-i18n="s4_text">Человек подносит телефон — вывеска реагирует. Мгновенный переход на сайт.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="srv_btn">Заказать аудит</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06. ТЕХНОЛОГИИ (Desire) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="mat_title">Технологический стек</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="mat_text">Мы не используем дешевые китайские контроллеры с закрытым кодом. Наши системы работают на базе Raspberry Pi, промышленных Arduino и Python. Это значит — гибкость, безопасность и возможность кастомизации под любые задачи.</p>
+        </div>
+        <div class="grid-4 reveal" style="--d: .2s; grid-template-columns: 1fr 1fr;">
+          <div class="card" style="padding: 20px; text-align: center; border-color: var(--accent);"><span class="code-text">Python</span></div>
+          <div class="card" style="padding: 20px; text-align: center;"><span class="code-text">C++</span></div>
+          <div class="card" style="padding: 20px; text-align: center;"><span class="code-text">JS</span></div>
+          <div class="card" style="padding: 20px; text-align: center; border-color: var(--accent-2);"><span class="code-text">REST API</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07. ПРОЦЕСС (Desire) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="proc_title">Как мы внедряем умные системы</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="reveal" style="--d: .1s">
+            <div style="font-family: var(--font-mono); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">01</div>
+            <h3 data-i18n="p1_title">Аудит</h3>
+            <p data-i18n="p1_text">Смотрим на вашу вывеску и решаем, как её «прокачать».</p>
+          </div>
+          <div class="reveal" style="--d: .2s">
+            <div style="font-family: var(--font-mono); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">02</div>
+            <h3 data-i18n="p2_title">Прототип</h3>
+            <p data-i18n="p2_text">Собираем тестовый стенд. Пишем код, проверяем связь с CRM.</p>
+          </div>
+          <div class="reveal" style="--d: .3s">
+            <div style="font-family: var(--font-mono); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">03</div>
+            <h3 data-i18n="p3_title">Монтаж</h3>
+            <p data-i18n="p3_text">Интегрируем контроллер в конструкцию, прокладываем сеть.</p>
+          </div>
+          <div class="reveal" style="--d: .4s">
+            <div style="font-family: var(--font-mono); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">04</div>
+            <h3 data-i18n="p4_title">Деплой</h3>
+            <p data-i18n="p4_text">Запускаем систему, обучаем персонал, даем доступ к панели управления.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn btn-primary" data-i18n="proc_btn">Запустить пилот</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08. ЦИФРЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap grid-4">
+        <div class="reveal" style="text-align: center;">
+          <div class="stat-num" data-counter="99">0</div>
+          <p data-i18n="stat1">Процентов Uptime систем</p>
+        </div>
+        <div class="reveal" style="--d: .1s; text-align: center;">
+          <div class="stat-num" data-counter="200">0</div>
+          <p data-i18n="stat2">Подключенных устройств</p>
+        </div>
+        <div class="reveal" style="--d: .2s; text-align: center;">
+          <div class="stat-num" data-counter="1000000">0</div>
+          <p data-i18n="stat3">Строк кода написано</p>
+        </div>
+        <div class="reveal" style="--d: .3s; text-align: center;">
+          <div class="stat-num" data-counter="24">0</div>
+          <p data-i18n="stat4">Часа в сутки работает мониторинг</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09. КЕЙСЫ (Desire) -->
+    <section class="section" id="portfolio">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="case_title">Кейсы внедрения</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #0a1410, #1a3324); display: grid; place-items: center; color: var(--accent); font-family: var(--font-mono); font-size: 1.5rem;">SMART_CAFE</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c1_title">Динамическое меню</h3>
+              <p data-i18n="c1_text">Экран в кофейне меняет цены в зависимости от погоды (дождь = скидка на капучино).</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .2s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #0a1410, #1a3324); display: grid; place-items: center; color: var(--accent); font-family: var(--font-mono); font-size: 1.5rem;">CRM_LINK</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c2_title">Вывеска-лидогенератор</h3>
+              <p data-i18n="c2_text">Экран с QR-кодом в ТЦ. Заявки мгновенно падают в Bitrix24 менеджера.</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .3s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #0a1410, #1a3324); display: grid; place-items: center; color: var(--accent); font-family: var(--font-mono); font-size: 1.5rem;">IOT_SENSOR</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c3_title">Умный фасад</h3>
+              <p data-i18n="c3_text">Медиафасад, который меняет яркость в зависимости от освещения и считает прохожих.</p>
+            </div>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .4s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="case_btn">Хочу такую систему</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. ЛАБОРАТОРИЯ (Trust) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal" style="--d: .1s; height: 400px; background: var(--bg); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted);">
+          [Фото: пайка контроллеров / код на экране]
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="prod_title">Свой R&D отдел.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="prod_text">Мы не перепродаем чужие коробочные решения. Наши инженеры пишут код и паяют контроллеры прямо в цеху. Это позволяет нам интегрировать вывеску с любой вашей системой, будь то 1С, SAP или самописный скрипт.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="prod_btn">Задать вопрос инженеру</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. ОСНОВАТЕЛИ (Trust) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="team_title">Те, кто пишет код в металле</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team1">Константин Родин</h3>
+            <p style="color: var(--accent);" data-i18n="team1_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .2s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team2">Юлия Горшкова</h3>
+            <p style="color: var(--accent);" data-i18n="team2_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .3s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">💻</div>
+            <h3 data-i18n="team3">Инженеры-программисты</h3>
+            <p style="color: var(--accent);" data-i18n="team3_role">Хакеры в хорошем смысле</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. ОТЗЫВЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="rev_title">Логи внедрения</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Интеграция с CRM спасла нам отдел продаж. Теперь каждая заявка с уличного экрана фиксируется автоматически".</p>
+            <div style="font-weight: 600;">Максим, сеть клиник</div>
+          </div>
+          <div class="card reveal" style="--d: .2s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Динамическое меню увеличило средний чек на 15%. Люди видят актуальные акции в реальном времени".</p>
+            <div style="font-weight: 600;">Анна, ресторан</div>
+          </div>
+          <div class="card reveal" style="--d: .3s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Сбой интернета? Не проблема. Система работает офлайн и синхронизируется, когда сеть возвращается".</p>
+            <div style="font-weight: 600;">Сергей, IT-директор</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. ГАРАНТИИ (Risk Reversal) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="gar_title">SLA и безопасность</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="gar_text">Мы гарантируем бесперебойную работу систем. Заключаем SLA с гарантией Uptime 99.9%. Обеспечиваем защиту от DDoS-атак и шифрование данных. Ваша умная вывеска под надежным цифровым замком.</p>
+          <div class="reveal" style="--d: .2s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="gar_btn">Запросить SLA</a>
+          </div>
+        </div>
+        <div class="grid-3 reveal" style="--d: .3s; grid-template-columns: 1fr;">
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g1">SLA 99.9% Uptime</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g2">Шифрование данных</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g3">Техподдержка 24/7</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. FAQ -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap" style="max-width: 800px;">
+        <h2 class="reveal" style="text-align: center; margin-bottom: 60px;" data-i18n="faq_title">Частые вопросы</h2>
+        
+        <div class="faq-item reveal" style="--d: .1s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f1_q">Что будет, если пропадет интернет?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f1_a">Умные вывески хранят кэш контента локально. Если сеть пропадает, экран продолжает работать по последнему сохраненному расписанию. Как только связь возвращается — данные синхронизируются.</p></div>
+        </div>
+        
+        <div class="faq-item reveal" style="--d: .2s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f2_q">Можно ли взломать вывеску?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f2_a">Мы используем защищенные протоколы передачи данных (HTTPS, MQTT over TLS) и двухфакторную авторизацию для доступа к панели управления. Взломать нашу систему сложнее, чем банковское приложение.</p></div>
+        </div>
+
+        <div class="faq-item reveal" style="--d: .3s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f3_q">Это дорого?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f3_a">Стоимость зависит от сложности. Базовый контроллер с выводом картинок стоит от 15 000 ₽ (без учета стоимости экрана). Интеграция с CRM — от 50 000 ₽. Окупается за счет роста конверсии.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15. ВЫЗОВ (Urgency) -->
+    <section class="section" style="text-align: center;">
+      <div class="wrap">
+        <h2 class="reveal" style="--d: .1s; font-size: clamp(2rem, 5vw, 4rem); max-width: 900px; margin-inline: auto; line-height: 1.2;" data-i18n="phil_title">«Взломай реальность. Сделай рекламу умной».</h2>
+        <div class="reveal" style="--d: .2s; margin-top: 40px;">
+          <a href="#contact" class="btn btn-primary" style="font-size: 1.1rem; padding: 20px 40px; font-family: var(--font-mono);" data-i18n="phil_btn">./run upgrade.sh</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16. КОНТАКТЫ (Action) -->
+    <section class="section" id="contact" style="background: var(--bg-2); border-top: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="cont_title">Инициализировать проект?</h2>
+          <p class="reveal" style="--d: .1s; margin-bottom: 40px;" data-i18n="cont_text">Оставьте заявку. Наш инженер свяжется с вами, проведет аудит текущей инфраструктуры и предложит варианты интеграции.</p>
+          <div class="reveal" style="--d: .2s; font-family: var(--font-mono); font-size: 1.2rem;">smart@lama.ru</div>
+          <div class="reveal" style="--d: .3s; font-family: var(--font-mono); font-size: 1.2rem; margin-top: 8px;">+7 (999) 123-45-67</div>
+        </div>
+        
+        <form class="reveal" style="--d: .3s" id="leadForm" novalidate>
+          <div class="form-group">
+            <input type="text" name="name" data-i18n-ph="form_name" placeholder="Ваше имя" required>
+          </div>
+          <div class="form-group">
+            <input type="tel" name="phone" data-i18n-ph="form_phone" placeholder="Телефон / Telegram" required>
+          </div>
+          <div class="form-group">
+            <textarea name="msg" rows="3" data-i18n-ph="form_msg" placeholder="Какую задачу нужно автоматизировать?"></textarea>
+          </div>
+          
+          <input type="text" name="company_website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="form_btn">Подключить систему</button>
+          <p style="font-size: 0.8rem; margin-top: 12px; text-align: center; opacity: 0.6;" data-i18n="form_policy">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top: 1px solid var(--line); padding: 40px 0; background: var(--bg);">
+    <div class="wrap" style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 РПК «Лама». <span data-i18n="foot_rights">Все права защищены.</span></div>
+      <div><a href="index.html" style="color: var(--accent);" data-i18n="nav_home">На главную</a></div>
+      <div data-i18n="foot_method">Сделано по методологии «СВЕТ»</div>
+    </div>
+  </footer>
+
+  <script>
+    const TKEY = 'lama-theme';
+    const savedTheme = localStorage.getItem(TKEY);
+    document.documentElement.dataset.theme = savedTheme || 'dark';
+    updateThemeBtn();
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem(TKEY, next);
+      updateThemeBtn();
+    }
+    function updateThemeBtn() {
+      const btn = document.querySelector('[data-theme-btn]');
+      if(btn) btn.setAttribute('aria-pressed', document.documentElement.dataset.theme === 'dark');
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const isActive = menu.classList.contains('active');
+      if (isActive) {
+        menu.classList.remove('active');
+        document.body.classList.remove('menu-open');
+      } else {
+        menu.classList.add('active');
+        document.body.classList.add('menu-open');
+      }
+    }
+
+    const I18N = {
+      ru: {
+        nav_home: 'Главная', nav_srv: 'Услуги', nav_cases: 'Кейсы', nav_contact: 'Контакты', nav_cta: 'Подключить',
+        hero_tag: '> Lama Smart — Интеграции_',
+        hero_title: 'Твоя вывеска теперь — компьютер.',
+        hero_sub: 'Превращаем статичный металл в цифровой инструмент. Умные экраны, CRM-интеграции и IoT-датчики. Собирай данные, управляй контентом, увеличивай конверсию.',
+        hero_btn: 'Подключить систему', hero_btn2: 'Смотреть кейсы',
+        p_tag: 'Ошибка 404',
+        p_title: 'Статика не работает. Она просто висит.',
+        p_text: 'Обычная вывеска не знает, сколько людей прошло мимо. Она не может предложить скидку в дождь или сменить акцию в обеденный перерыв. Вы платите за рекламу, но не получаете ни одного байта обратной связи.',
+        s_title: 'Дай рекламе мозги.',
+        s_text: 'Мы устанавливаем в ваши конструкции контроллеры и подключаем их к облаку. Теперь вы управляете вывеской со смартфона. Меняете контент по расписанию, собираете аналитику с датчиков движения и синхронизируете экраны с CRM.',
+        s_btn: 'Обсудить интеграцию',
+        srv_title: 'Наши цифровые модули',
+        s1_title: 'Умные экраны', s1_text: 'Вывод динамического контента. Расписание, погода, курсы валют.',
+        s2_title: 'CRM-интеграции', s2_text: 'Синхронизация с Bitrix24, amoCRM. Заявки напрямую с экрана.',
+        s3_title: 'IoT-датчики', s3_text: 'Подсчет трафика, анализ температуры, уровня шума и влажности.',
+        s4_title: 'NFC и QR-взаимодействие', s4_text: 'Человек подносит телефон — вывеска реагирует. Мгновенный переход на сайт.',
+        srv_btn: 'Заказать аудит',
+        mat_title: 'Технологический стек',
+        mat_text: 'Мы не используем дешевые китайские контроллеры с закрытым кодом. Наши системы работают на базе Raspberry Pi, промышленных Arduino и Python. Это значит — гибкость, безопасность и возможность кастомизации под любые задачи.',
+        proc_title: 'Как мы внедряем умные системы',
+        p1_title: 'Аудит', p1_text: 'Смотрим на вашу вывеску и решаем, как её «прокачать».',
+        p2_title: 'Прототип', p2_text: 'Собираем тестовый стенд. Пишем код, проверяем связь с CRM.',
+        p3_title: 'Монтаж', p3_text: 'Интегрируем контроллер в конструкцию, прокладываем сеть.',
+        p4_title: 'Деплой', p4_text: 'Запускаем систему, обучаем персонал, даем доступ к панели управления.',
+        proc_btn: 'Запустить пилот',
+        stat1: 'Процентов Uptime систем', stat2: 'Подключенных устройств', stat3: 'Строк кода написано', stat4: 'Часа в сутки работает мониторинг',
+        case_title: 'Кейсы внедрения',
+        c1_title: 'Динамическое меню', c1_text: 'Экран в кофейне меняет цены в зависимости от погоды (дождь = скидка на капучино).',
+        c2_title: 'Вывеска-лидогенератор', c2_text: 'Экран с QR-кодом в ТЦ. Заявки мгновенно падают в Bitrix24 менеджера.',
+        c3_title: 'Умный фасад', c3_text: 'Медиафасад, который меняет яркость в зависимости от освещения и считает прохожих.',
+        case_btn: 'Хочу такую систему',
+        prod_title: 'Свой R&D отдел.',
+        prod_text: 'Мы не перепродаем чужие коробочные решения. Наши инженеры пишут код и паяют контроллеры прямо в цеху. Это позволяет нам интегрировать вывеску с любой вашей системой, будь то 1С, SAP или самописный скрипт.',
+        prod_btn: 'Задать вопрос инженеру',
+        team_title: 'Те, кто пишет код в металле', team1: 'Константин Родин', team1_role: 'Со-основатель', team2: 'Юлия Горшкова', team2_role: 'Со-основатель', team3: 'Инженеры-программисты', team3_role: 'Хакеры в хорошем смысле',
+        rev_title: 'Логи внедрения',
+        gar_title: 'SLA и безопасность', gar_text: 'Мы гарантируем бесперебойную работу систем. Заключаем SLA с гарантией Uptime 99.9%. Обеспечиваем защиту от DDoS-атак и шифрование данных. Ваша умная вывеска под надежным цифровым замком.', gar_btn: 'Запросить SLA',
+        g1: 'SLA 99.9% Uptime', g2: 'Шифрование данных', g3: 'Техподдержка 24/7',
+        faq_title: 'Частые вопросы',
+        f1_q: 'Что будет, если пропадет интернет?', f1_a: 'Умные вывески хранят кэш контента локально. Если сеть пропадает, экран продолжает работать по последнему сохраненному расписанию. Как только связь возвращается — данные синхронизируются.',
+        f2_q: 'Можно ли взломать вывеску?', f2_a: 'Мы используем защищенные протоколы передачи данных (HTTPS, MQTT over TLS) и двухфакторную авторизацию для доступа к панели управления. Взломать нашу систему сложнее, чем банковское приложение.',
+        f3_q: 'Это дорого?', f3_a: 'Стоимость зависит от сложности. Базовый контроллер с выводом картинок стоит от 15 000 ₽ (без учета стоимости экрана). Интеграция с CRM — от 50 000 ₽. Окупается за счет роста конверсии.',
+        phil_title: '«Взломай реальность. Сделай рекламу умной».', phil_btn: './run upgrade.sh',
+        cont_title: 'Инициализировать проект?', cont_text: 'Оставьте заявку. Наш инженер свяжется с вами, проведет аудит текущей инфраструктуры и предложит варианты интеграции.',
+        form_name: 'Ваше имя', form_phone: 'Телефон / Telegram', form_msg: 'Какую задачу нужно автоматизировать?', form_btn: 'Подключить систему', form_policy: 'Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.',
+        foot_rights: 'Все права защищены.', foot_method: 'Сделано по методологии «СВЕТ»'
+      },
+      en: {
+        nav_home: 'Home', nav_srv: 'Services', nav_cases: 'Cases', nav_contact: 'Contact', nav_cta: 'Connect',
+        hero_tag: '> Lama Smart — Integrations_',
+        hero_title: 'Your sign is now a computer.',
+        hero_sub: 'Turning static metal into a digital tool. Smart screens, CRM integrations, and IoT sensors. Collect data, manage content, increase conversion.',
+        hero_btn: 'Connect system', hero_btn2: 'View cases',
+        p_tag: 'Error 404',
+        p_title: 'Statics don\'t work. They just hang.',
+        p_text: 'A regular sign doesn\'t know how many people passed by. It can\'t offer a discount in the rain or change a promotion during lunch break. You pay for advertising but don\'t get a single byte of feedback.',
+        s_title: 'Give advertising a brain.',
+        s_text: 'We install controllers in your structures and connect them to the cloud. Now you manage the sign from your smartphone. Change content on schedule, collect analytics from motion sensors, and sync screens with CRM.',
+        s_btn: 'Discuss integration',
+        srv_title: 'Our digital modules',
+        s1_title: 'Smart screens', s1_text: 'Dynamic content output. Schedule, weather, exchange rates.',
+        s2_title: 'CRM integrations', s2_text: 'Synchronization with Bitrix24, amoCRM. Leads directly from the screen.',
+        s3_title: 'IoT sensors', s3_text: 'Traffic counting, temperature analysis, noise and humidity levels.',
+        s4_title: 'NFC & QR interaction', s4_text: 'A person brings their phone — the sign reacts. Instant transition to the site.',
+        srv_btn: 'Order audit',
+        mat_title: 'Tech stack',
+        mat_text: 'We don\'t use cheap Chinese closed-source controllers. Our systems are based on Raspberry Pi, industrial Arduino, and Python. This means flexibility, security, and the ability to customize for any task.',
+        proc_title: 'How we implement smart systems',
+        p1_title: 'Audit', p1_text: 'We look at your sign and decide how to "pump" it up.',
+        p2_title: 'Prototype', p2_text: 'We assemble a test stand. Write code, check connection with CRM.',
+        p3_title: 'Installation', p3_text: 'Integrate the controller into the structure, lay the network.',
+        p4_title: 'Deploy', p4_text: 'Launch the system, train staff, give access to the control panel.',
+        proc_btn: 'Start a pilot',
+        stat1: 'Percent systems Uptime', stat2: 'Connected devices', stat3: 'Lines of code written', stat4: 'Hours a day monitoring works',
+        case_title: 'Implementation cases',
+        c1_title: 'Dynamic menu', c1_text: 'Screen in a coffee shop changes prices depending on the weather (rain = discount on cappuccino).',
+        c2_title: 'Lead-generating sign', c2_text: 'Screen with a QR code in a mall. Leads instantly drop into the manager\'s Bitrix24.',
+        c3_title: 'Smart facade', c3_text: 'Media facade that changes brightness depending on lighting and counts passersby.',
+        case_btn: 'I want such a system',
+        prod_title: 'Own R&D department.',
+        prod_text: 'We don\'t resell other people\'s boxed solutions. Our engineers write code and solder controllers right in the workshop. This allows us to integrate the sign with any of your systems, be it 1C, SAP, or a custom script.',
+        prod_btn: 'Ask an engineer',
+        team_title: 'Those who write code in metal', team1: 'Konstantin Rodin', team1_role: 'Co-founder', team2: 'Yulia Gorshkova', team2_role: 'Co-founder', team3: 'Software engineers', team3_role: 'Hackers in a good sense',
+        rev_title: 'Implementation logs',
+        gar_title: 'SLA & security', gar_text: 'We guarantee uninterrupted operation of systems. We conclude SLA with 99.9% Uptime guarantee. We provide DDoS protection and data encryption. Your smart sign is under a reliable digital lock.', gar_btn: 'Request SLA',
+        g1: 'SLA 99.9% Uptime', g2: 'Data encryption', g3: '24/7 tech support',
+        faq_title: 'FAQ',
+        f1_q: 'What if the internet goes down?', f1_a: 'Smart signs cache content locally. If the network is lost, the screen continues to work according to the last saved schedule. As soon as the connection returns, the data is synchronized.',
+        f2_q: 'Can the sign be hacked?', f2_a: 'We use secure data transfer protocols (HTTPS, MQTT over TLS) and two-factor authorization for access to the control panel. Hacking our system is harder than a banking app.',
+        f3_q: 'Is it expensive?', f3_a: 'The cost depends on complexity. A basic controller with image output costs from 15,000 RUB (excluding the screen). CRM integration — from 50,000 RUB. Pays off through increased conversion.',
+        phil_title: '"Hack reality. Make advertising smart."', phil_btn: './run upgrade.sh',
+        cont_title: 'Initialize project?', cont_text: 'Leave a request. Our engineer will contact you, conduct an audit of the current infrastructure, and offer integration options.',
+        form_name: 'Your name', form_phone: 'Phone / Telegram', form_msg: 'What task needs to be automated?', form_btn: 'Connect system', form_policy: 'By clicking the button, you agree to the privacy policy.',
+        foot_rights: 'All rights reserved.', foot_method: 'Made with "SVET" methodology'
+      }
+    };
+
+    const LKEY = 'lama-lang';
+    let currentLang = localStorage.getItem(LKEY) || 'ru';
+
+    function applyLang(l) {
+      document.documentElement.lang = l;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = I18N[l][el.dataset.i18n];
+        if (v) el.innerHTML = v;
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const v = I18N[l][el.dataset.i18nPh];
+        if (v) el.placeholder = v;
+      });
+      const btn = document.getElementById('langBtn');
+      if(btn) btn.textContent = l === 'ru' ? 'EN' : 'RU';
+      localStorage.setItem(LKEY, l);
+      currentLang = l;
+    }
+    function toggleLang() { applyLang(currentLang === 'ru' ? 'en' : 'ru'); }
+    applyLang(currentLang);
+
+    (function() {
+      if (matchMedia('(hover: none)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const a = document.querySelector('.blob-a'), b = document.querySelector('.blob-b');
+      let tx = 0, ty = 0, cx = 0, cy = 0;
+      addEventListener('pointermove', e => {
+        tx = e.clientX / innerWidth - .5;
+        ty = e.clientY / innerHeight - .5;
+      }, { passive: true });
+      (function loop() {
+        cx += (tx - cx) * .06;
+        cy += (ty - cy) * .06;
+        a.style.transform = `translate3d(${cx * 50}px, ${cy * 50}px, 0)`;
+        b.style.transform = `translate3d(${cx * -70}px, ${cy * -70}px, 0)`;
+        requestAnimationFrame(loop);
+      })();
+    })();
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    const counterIo = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          const target = +el.dataset.counter;
+          const duration = 2000;
+          const start = performance.now();
+          const update = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(easeOut * target);
+            if (progress < 1) requestAnimationFrame(update);
+            else el.textContent = target;
+          };
+          requestAnimationFrame(update);
+          counterIo.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('[data-counter]').forEach(el => counterIo.observe(el));
+
+    function toggleFaq(el) {
+      const item = el.parentElement;
+      const isActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+      if (!isActive) {
+        item.classList.add('active');
+        el.querySelector('span:last-child').textContent = '−';
+      } else {
+        el.querySelector('span:last-child').textContent = '+';
+      }
+    }
+
+    const LEAD_CONFIG = { channel: 'webhook', endpoint: 'https://your-crm.ru/api/leads' };
+    async function submitLead(lead) {
+      return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
+    }
+
+    const form = document.getElementById('leadForm');
+    form.dataset.loadedAt = Date.now();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      const phone = form.phone.value.replace(/[^\d+]/g, '');
+      const trap = form.company_website.value;
+      
+      if (trap) return; 
+      if (name.length < 2 || phone.length < 10) {
+        alert(currentLang === 'ru' ? 'Заполните все поля.' : 'Please fill all fields.');
+        return;
+      }
+      if (Date.now() - form.dataset.loadedAt < 3000) return;
+
+      const btn = form.querySelector('button[type=submit]');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = currentLang === 'ru' ? 'Отправка...' : 'Sending...';
+      
+      try {
+        await submitLead({ name, phone, source: location.href, ts: Date.now() });
+        form.innerHTML = `<div class="form-success">${currentLang === 'ru' ? 'Заявка принята. Мы свяжемся с вами!' : 'Request accepted. We will contact you!'}</div>`;
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('Error');
+      }
+    });
+  </script>
+</body>
+</html>

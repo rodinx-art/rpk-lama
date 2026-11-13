@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lama Urban | Наружная реклама</title>
+  <meta name="description" content="Световые короба, объемные буквы, неон и медиафасады. Производим и монтируем вывески, которые невозможно не заметить.">
+  <meta name="theme-color" content="#0a0a0b">
+  
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Unbounded:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================
+       01. ТОКЕНЫ (Угольно-черный + Кислотный лайм)
+       ========================================= */
+    :root {
+      --bg: #f4f4f0;
+      --bg-2: #ffffff;
+      --fg: #0a0a0b;
+      --muted: #5c5c66;
+      --line: rgba(0,0,0,.1);
+      --accent: #0a0a0b; /* В светлой теме акцент темный */
+      --accent-2: #d4ff00; /* Лайм */
+      --accent-glow: rgba(0,0,0,.1);
+      --blob-a: rgba(0,0,0,.08);
+      --blob-b: rgba(212,255,0,.2);
+      --font-h: 'Unbounded', system-ui, sans-serif;
+      --font-b: 'Inter', system-ui, sans-serif;
+      --wrap: min(1240px, 100% - 40px);
+      --rad: 20px;
+      --trans: .4s cubic-bezier(.2,.7,.2,1);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a0a0b;
+      --bg-2: #141416;
+      --fg: #f4f2ec;
+      --muted: #8d8d97;
+      --line: rgba(255,255,255,.09);
+      --accent: #d4ff00; /* В темной теме акцент лайм */
+      --accent-2: #ff4d2e;
+      --accent-glow: rgba(212,255,0,.2);
+      --blob-a: rgba(212,255,0,.15);
+      --blob-b: rgba(255,77,46,.1);
+    }
+
+    /* =========================================
+       02. СБРОС И БАЗА
+       ========================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 var(--font-b);
+      transition: background var(--trans), color var(--trans);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; transition: color .3s; }
+    ul { list-style: none; }
+    h1, h2, h3, h4 { font-family: var(--font-h); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+    h1 { font-size: clamp(2.5rem, 6vw, 5.5rem); font-weight: 800; margin-bottom: 24px; }
+    h2 { font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 24px; }
+    h3 { font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 16px; }
+    p { color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.15rem); max-width: 65ch; }
+    
+    /* =========================================
+       03. УТИЛИТЫ
+       ========================================= */
+    .wrap { width: var(--wrap); margin-inline: auto; }
+    .section { padding: clamp(60px, 10vw, 120px) 0; position: relative; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 16px 32px; border-radius: 100px; font: 600 1rem var(--font-b);
+      border: 1px solid var(--line); background: transparent; color: var(--fg);
+      cursor: pointer; transition: all .3s ease; text-align: center;
+    }
+    .btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .btn-primary { background: var(--accent); color: #0a0a0b; border-color: var(--accent); }
+    .btn-primary:hover { box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-2px); background: var(--accent); color: #0a0a0b; }
+
+    .tag { display: inline-block; padding: 6px 14px; border-radius: 100px; border: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+
+    /* =========================================
+       04. КОМПОНЕНТЫ
+       ========================================= */
+    .blob {
+      position: fixed; border-radius: 50%; filter: blur(100px);
+      pointer-events: none; z-index: -1; will-change: transform;
+      transition: background .5s ease;
+    }
+    .blob-a { width: 60vmax; height: 60vmax; top: -20vmax; left: -10vmax; background: radial-gradient(circle, var(--blob-a), transparent 60%); }
+    .blob-b { width: 70vmax; height: 70vmax; bottom: -30vmax; right: -20vmax; background: radial-gradient(circle, var(--blob-b), transparent 65%); }
+    @media (hover: none), (prefers-reduced-motion: reduce) { .blob { display: none; } }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: blur(16px); border-bottom: 1px solid var(--line);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .logo { font-family: var(--font-h); font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; }
+    .nav { display: flex; gap: 24px; align-items: center; }
+    .nav a { font-size: 0.95rem; font-weight: 500; }
+    .nav a:hover { color: var(--accent); }
+    .nav-cta { display: none; }
+    
+    .controls { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); cursor: pointer; display: grid; place-items: center;
+      transition: all .3s;
+    }
+    .icon-btn:hover { border-color: var(--fg); background: var(--bg-2); }
+    .lang-btn { width: auto; padding: 0 16px; border-radius: 100px; font-weight: 600; font-size: .85rem; }
+    
+    .burger { display: none; }
+    
+    .mobile-menu {
+      position: fixed; top: 72px; left: 0; right: 0; bottom: 0;
+      background: var(--bg); z-index: 99;
+      padding: 40px; display: flex; flex-direction: column; gap: 24px;
+      transform: translateX(100%); transition: transform .4s ease;
+      border-top: 1px solid var(--line);
+    }
+    .mobile-menu.active { transform: none; }
+    .mobile-menu a { font-family: var(--font-h); font-size: 1.5rem; font-weight: 600; }
+    body.menu-open { overflow: hidden; }
+
+    .card {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--rad);
+      padding: 40px; transition: transform .4s, border-color .4s;
+    }
+    .card:hover { transform: translateY(-6px); border-color: var(--accent); }
+    .card-icon { font-size: 2rem; margin-bottom: 24px; color: var(--accent); }
+
+    .marquee { overflow: hidden; white-space: nowrap; border-block: 1px solid var(--line); padding: 20px 0; display: flex; background: var(--bg-2); }
+    .marquee-content { display: flex; gap: 40px; animation: scroll 20s linear infinite; font-family: var(--font-h); font-size: 1.2rem; text-transform: uppercase; color: var(--muted); }
+    @keyframes scroll { to { transform: translateX(-50%); } }
+
+    .faq-item { border-bottom: 1px solid var(--line); padding: 24px 0; }
+    .faq-q { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-family: var(--font-h); font-size: 1.2rem; font-weight: 500; }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+    .faq-a p { margin-top: 16px; }
+    .faq-item.active .faq-a { max-height: 200px; }
+
+    .form-group { margin-bottom: 20px; }
+    input, textarea {
+      width: 100%; padding: 16px 20px; border-radius: 12px; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); font: 1rem var(--font-b); transition: border-color .3s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    ::placeholder { color: var(--muted); opacity: 0.6; }
+    .form-success { color: var(--accent); font-weight: 600; padding: 20px; border: 1px solid var(--accent); border-radius: 12px; text-align: center; }
+
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .marquee-content { animation: none; }
+    }
+
+    .stat-num { font-family: var(--font-h); font-size: clamp(3rem, 6vw, 5rem); font-weight: 800; color: var(--accent); }
+
+    /* Специфичные стили для Urban (свечение) */
+    .glow-box {
+      position: relative; border-radius: var(--rad); overflow: hidden;
+      background: #000; border: 1px solid var(--line);
+    }
+    .glow-box::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at center, var(--accent) 0%, transparent 70%);
+      opacity: 0.2; filter: blur(40px); transition: opacity .5s;
+    }
+    .glow-box:hover::before { opacity: 0.5; }
+
+    @media (max-width: 1080px) {
+      .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .split { grid-template-columns: 1fr; gap: 40px; }
+      .nav-cta { display: none; }
+    }
+    @media (max-width: 880px) {
+      .nav { display: none; }
+      .burger { display: grid; }
+    }
+    @media (max-width: 620px) {
+      .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .header-inner { justify-content: space-between; }
+      .card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-a" aria-hidden="true"></div>
+  <div class="blob blob-b" aria-hidden="true"></div>
+
+  <header>
+    <div class="wrap header-inner">
+      <a href="index.html" class="logo">ЛАМА<span style="color:var(--accent)">.</span></a>
+      <nav class="nav">
+        <a href="index.html" data-i18n="nav_home">Главная</a>
+        <a href="#services" data-i18n="nav_srv">Услуги</a>
+        <a href="#portfolio" data-i18n="nav_cases">Кейсы</a>
+        <a href="#contact" data-i18n="nav_contact">Контакты</a>
+      </nav>
+      <div class="controls">
+        <a href="#contact" class="btn btn-primary nav-cta" style="padding: 10px 20px; font-size: 0.9rem;" data-i18n="nav_cta">Замер</a>
+        <button class="icon-btn" data-theme-btn onclick="toggleTheme()" aria-pressed="true" aria-label="Тема">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button class="icon-btn lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+        <button class="icon-btn burger" onclick="toggleMenu()" aria-label="Меню">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" onclick="toggleMenu()" data-i18n="nav_home">Главная</a>
+    <a href="#services" onclick="toggleMenu()" data-i18n="nav_srv">Услуги</a>
+    <a href="#portfolio" onclick="toggleMenu()" data-i18n="nav_cases">Кейсы</a>
+    <a href="#contact" onclick="toggleMenu()" data-i18n="nav_contact">Контакты</a>
+    <a href="#contact" onclick="toggleMenu()" class="btn btn-primary" style="margin-top: 24px;" data-i18n="nav_cta">Замер</a>
+  </div>
+
+  <main>
+    <!-- 01. HERO -->
+    <section class="section" style="min-height: 100svh; display: flex; align-items: center; padding-top: 100px;">
+      <div class="wrap split">
+        <div>
+          <div class="tag reveal" data-i18n="hero_tag">Lama Urban — Наружная реклама</div>
+          <h1 class="reveal" style="--d: .1s" data-i18n="hero_title">Город спит.<br>Ваша вывеска — нет.</h1>
+          <p class="reveal" style="--d: .2s; font-size: 1.3rem; margin-bottom: 40px;" data-i18n="hero_sub">Световые короба, объемные буквы, неон и медиафасады. Производим и монтируем вывески, которые невозможно не заметить. Превращаем прохожих в клиентов.</p>
+          <div class="reveal" style="--d: .3s; display: flex; gap: 16px; flex-wrap: wrap;">
+            <a href="#contact" class="btn btn-primary" data-i18n="hero_btn">Зажечь вывеску</a>
+            <a href="#portfolio" class="btn" data-i18n="hero_btn2">Наши работы</a>
+          </div>
+        </div>
+        <div class="reveal glow-box" style="--d: .4s; height: 500px; display: grid; place-items: center; background: #000;">
+          <div style="font-family: var(--font-h); font-size: 2rem; color: var(--accent); text-shadow: 0 0 20px var(--accent);">NEON</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02. ДОВЕРИЕ (Marquee) -->
+    <div class="marquee">
+      <div class="marquee-content">
+        <span>Световые короба</span> <span>•</span> <span>Объемные буквы</span> <span>•</span> <span>Неон</span> <span>•</span> <span>Медиафасады</span> <span>•</span> <span>Лайтбоксы</span> <span>•</span>
+        <span>Световые короба</span> <span>•</span> <span>Объемные буквы</span> <span>•</span> <span>Неон</span> <span>•</span> <span>Медиафасады</span> <span>•</span> <span>Лайтбоксы</span> <span>•</span>
+      </div>
+    </div>
+
+    <!-- 03. ПРОБЛЕМА (PAS - Problem) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <div class="tag reveal" style="border-color: var(--accent-2); color: var(--accent-2);" data-i18n="p_tag">Почему это важно</div>
+          <h2 class="reveal" style="--d: .1s" data-i18n="p_title">Тусклая вывеска = потерянные клиенты.</h2>
+          <p class="reveal" style="--d: .2s" data-i18n="p_text">В городском шуме побеждает тот, кто ярче. Если вашу вывеску не видно из-за угла, а вечером она сливается с темнотой — вы платите аренду за невидимый бизнес. Мы это исправляем.</p>
+        </div>
+        <div class="reveal" style="--d: .3s; height: 300px; background: var(--bg-2); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; font-size: 4rem; color: var(--accent-2);">
+          🌑
+        </div>
+      </div>
+    </section>
+
+    <!-- 04. РЕШЕНИЕ (PAS - Solution) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal glow-box" style="--d: .1s; height: 300px; display: grid; place-items: center;">
+           <div style="font-size: 4rem; color: var(--accent); text-shadow: 0 0 20px var(--accent);">☀</div>
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="s_title">Станьте точкой притяжения.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="s_text">Мы проектируем и производим наружную рекламу, которая работает 24/7. Правильно подобранная температура света, качественные материалы и грамотный монтаж — ваша вывеска будет заметна и через 5 лет.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn btn-primary" data-i18n="s_btn">Обсудить вывеску</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05. УСЛУГИ (Interest) -->
+    <section class="section" id="services">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="srv_title">Что мы производим</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s">
+            <div class="card-icon">💡</div>
+            <h3 data-i18n="s1_title">Световые короба</h3>
+            <p data-i18n="s1_text">Лайтбоксы любой сложности. Яркие, энергоэффективные, надежные.</p>
+          </div>
+          <div class="card reveal" style="--d: .2s">
+            <div class="card-icon">🔠</div>
+            <h3 data-i18n="s2_title">Объемные буквы</h3>
+            <p data-i18n="s2_text">От классического акрила до сложных композитных конструкций с подсветкой.</p>
+          </div>
+          <div class="card reveal" style="--d: .3s">
+            <div class="card-icon">⚡</div>
+            <h3 data-i18n="s3_title">Неон и гибкий неон</h3>
+            <p data-i18n="s3_text">Создаем атмосферу. Идеально для баров, ресторанов и креативных пространств.</p>
+          </div>
+          <div class="card reveal" style="--d: .4s">
+            <div class="card-icon">🏙</div>
+            <h3 data-i18n="s4_title">Медиафасады</h3>
+            <p data-i18n="s4_text">Динамичная реклама на весь фасад здания. Привлекает 100% внимания.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="srv_btn">Рассчитать стоимость</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06. МАТЕРИАЛЫ (Desire) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="mat_title">Только проверенные материалы</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="mat_text">Мы не экономим на том, что висит на улице. Используем акрил ведущих производителей, светодиоды с гарантией 5 лет и антикоррозийную обработку металла. Ваша вывеска выдержит дождь, снег и перепады температур.</p>
+        </div>
+        <div class="grid-4 reveal" style="--d: .2s; grid-template-columns: 1fr 1fr;">
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m1">Акрил</strong></div>
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m2">Композит</strong></div>
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m3">LED</strong></div>
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m4">Металл</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07. ПРОЦЕСС (Desire) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="proc_title">От замера до включения</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="reveal" style="--d: .1s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">01</div>
+            <h3 data-i18n="p1_title">Замер</h3>
+            <p data-i18n="p1_text">Выезжаем на объект, оцениваем фасад, согласовываем место.</p>
+          </div>
+          <div class="reveal" style="--d: .2s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">02</div>
+            <h3 data-i18n="p2_title">Проект</h3>
+            <p data-i18n="p2_text">Готовим 3D-визуализацию. Вы видите, как это будет выглядеть.</p>
+          </div>
+          <div class="reveal" style="--d: .3s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">03</div>
+            <h3 data-i18n="p3_title">Производство</h3>
+            <p data-i18n="p3_text">Фрезеровка, сварка, сборка электрики. Всё в своем цеху.</p>
+          </div>
+          <div class="reveal" style="--d: .4s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">04</div>
+            <h3 data-i18n="p4_title">Монтаж</h3>
+            <p data-i18n="p4_text">Привозим, вешаем, подключаем. Сдаем под ключ.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn btn-primary" data-i18n="proc_btn">Вызвать замерщика</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08. ЦИФРЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap grid-4">
+        <div class="reveal" style="text-align: center;">
+          <div class="stat-num" data-counter="850">0</div>
+          <p data-i18n="stat1">Вывесок установлено</p>
+        </div>
+        <div class="reveal" style="--d: .1s; text-align: center;">
+          <div class="stat-num" data-counter="5">0</div>
+          <p data-i18n="stat2">Лет гарантии на LED</p>
+        </div>
+        <div class="reveal" style="--d: .2s; text-align: center;">
+          <div class="stat-num" data-counter="1000">0</div>
+          <p data-i18n="stat3">Кв.м. цеха</p>
+        </div>
+        <div class="reveal" style="--d: .3s; text-align: center;">
+          <div class="stat-num" data-counter="0">0</div>
+          <p data-i18n="stat4">Посредников</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09. КЕЙСЫ (Desire) -->
+    <section class="section" id="portfolio">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="case_title">Свет, который продает</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; padding: 0; overflow: hidden; border: none; background: #000;">
+            <div style="height: 300px; display: grid; place-items: center; color: var(--accent); font-family: var(--font-h); text-shadow: 0 0 15px var(--accent); font-size: 1.5rem;">БАР "ТИХИЙ"</div>
+            <div style="padding: 24px; background: var(--bg);">
+              <h3 data-i18n="c1_title">Неоновая вывеска</h3>
+              <p data-i18n="c1_text">Гибкий неон, сложная геометрия, влагозащита IP67.</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .2s; padding: 0; overflow: hidden; border: none; background: #000;">
+            <div style="height: 300px; display: grid; place-items: center; color: var(--accent); font-family: var(--font-h); text-shadow: 0 0 15px var(--accent); font-size: 1.5rem;">МЕГАФОН</div>
+            <div style="padding: 24px; background: var(--bg);">
+              <h3 data-i18n="c2_title">Объемные буквы</h3>
+              <p data-i18n="c2_text">Световой короб с лицевой подсветкой. 12 метров.</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .3s; padding: 0; overflow: hidden; border: none; background: #000;">
+            <div style="height: 300px; display: grid; place-items: center; color: var(--accent); font-family: var(--font-h); text-shadow: 0 0 15px var(--accent); font-size: 1.5rem;">LAMA</div>
+            <div style="padding: 24px; background: var(--bg);">
+              <h3 data-i18n="c3_title">Медиафасад</h3>
+              <p data-i18n="c3_text">Динамическая подсветка, управление со смартфона.</p>
+            </div>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .4s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="case_btn">Хочу такую же</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. ПРОИЗВОДСТВО (Trust) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal" style="--d: .1s; height: 400px; background: var(--bg); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted);">
+          [Фото цеха / станков]
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="prod_title">Свой цех — это ваша выгода.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="prod_text">Мы не перекупщики. У нас есть собственные станки (ЧПУ, лазер), сварка и покрасочная камера. Это значит: вы не платите наценку посредникам, а мы контролируем качество на каждом этапе.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="prod_btn">Приехать в цех</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. ОСНОВАТЕЛИ (Trust) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="team_title">Те, кто зажигает</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team1">Константин Родин</h3>
+            <p style="color: var(--accent);" data-i18n="team1_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .2s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team2">Юлия Горшкова</h3>
+            <p style="color: var(--accent);" data-i18n="team2_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .3s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">⚡</div>
+            <h3 data-i18n="team3">Монтажная бригада</h3>
+            <p style="color: var(--accent);" data-i18n="team3_role">Промышленный альпинизм</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. ОТЗЫВЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="rev_title">Отзывы</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Заказывали вывеску для бара. Сделали за 10 дней. Свет — просто космос, гости фотографируются на фоне".</p>
+            <div style="font-weight: 600;">Алексей, бар "Тихий"</div>
+          </div>
+          <div class="card reveal" style="--d: .2s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Установили объемные буквы на фасад бизнес-центра. Быстро, аккуратно, без штрафов от города".</p>
+            <div style="font-weight: 600;">Сергей, УК "Высота"</div>
+          </div>
+          <div class="card reveal" style="--d: .3s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Лама сделала медиафасад. Это окупилось за 3 месяца за счет рекламы внутри экрана".</p>
+            <div style="font-weight: 600;">Игорь, ресторан "Огонь"</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. ГАРАНТИИ (Risk Reversal) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="gar_title">Железные гарантии</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="gar_text">Мы даем гарантию 3 года на конструкцию и 5 лет на светодиодные модули. Если что-то сломается — приедем и починим за свой счет. Для нас репутация дороже.</p>
+          <div class="reveal" style="--d: .2s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="gar_btn">Запросить гарантию</a>
+          </div>
+        </div>
+        <div class="grid-3 reveal" style="--d: .3s; grid-template-columns: 1fr;">
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g1">Гарантия на монтаж</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g2">Соблюдение сроков</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g3">Помощь с согласованием</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. FAQ -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap" style="max-width: 800px;">
+        <h2 class="reveal" style="text-align: center; margin-bottom: 60px;" data-i18n="faq_title">Вопросы</h2>
+        
+        <div class="faq-item reveal" style="--d: .1s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f1_q">Сколько стоит вывеска?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f1_a">Стоимость зависит от типа, размера и подсветки. Простой лайтбокс — от 25 000 ₽. Объемные буквы — от 60 000 ₽. Точную смету дадим после замера.</p></div>
+        </div>
+        
+        <div class="faq-item reveal" style="--d: .2s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f2_q">Кто согласовывает вывеску с городом?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f2_a">Мы помогаем собрать пакет документов и проконсультируем по всем нормам. Если нужно — разработаем проект под требования администрации.</p></div>
+        </div>
+
+        <div class="faq-item reveal" style="--d: .3s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f3_q">Что если вывеска сломается зимой?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f3_a">У нас есть гарантия на все светодиоды. Если перегорит модуль — заменим по гарантии. Конструкция рассчитана на любые погодные условия.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15. ВЫЗОВ (Urgency) -->
+    <section class="section" style="text-align: center;">
+      <div class="wrap">
+        <h2 class="reveal" style="--d: .1s; font-size: clamp(2rem, 5vw, 4rem); max-width: 900px; margin-inline: auto; line-height: 1.2;" data-i18n="phil_title">«Ваша вывеска должна работать на вас. Даже когда вы спите».</h2>
+        <div class="reveal" style="--d: .2s; margin-top: 40px;">
+          <a href="#contact" class="btn btn-primary" style="font-size: 1.1rem; padding: 20px 40px;" data-i18n="phil_btn">Зажечь вывеску</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16. КОНТАКТЫ (Action) -->
+    <section class="section" id="contact" style="background: var(--bg-2); border-top: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="cont_title">Вызвать замерщика?</h2>
+          <p class="reveal" style="--d: .1s; margin-bottom: 40px;" data-i18n="cont_text">Оставьте заявку. Мы приедем на объект, сделаем замеры и предложим 3 варианта решения с бюджетом. Бесплатно и без обязательств.</p>
+          <div class="reveal" style="--d: .2s; font-family: var(--font-h); font-size: 1.2rem;">urban@lama.ru</div>
+          <div class="reveal" style="--d: .3s; font-family: var(--font-h); font-size: 1.2rem; margin-top: 8px;">+7 (999) 123-45-67</div>
+        </div>
+        
+        <form class="reveal" style="--d: .3s" id="leadForm" novalidate>
+          <div class="form-group">
+            <input type="text" name="name" data-i18n-ph="form_name" placeholder="Ваше имя" required>
+          </div>
+          <div class="form-group">
+            <input type="tel" name="phone" data-i18n-ph="form_phone" placeholder="Телефон / Telegram" required>
+          </div>
+          <div class="form-group">
+            <textarea name="msg" rows="3" data-i18n-ph="form_msg" placeholder="Адрес объекта или задача"></textarea>
+          </div>
+          
+          <input type="text" name="company_website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="form_btn">Вызвать замерщика</button>
+          <p style="font-size: 0.8rem; margin-top: 12px; text-align: center; opacity: 0.6;" data-i18n="form_policy">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top: 1px solid var(--line); padding: 40px 0; background: var(--bg);">
+    <div class="wrap" style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 РПК «Лама». <span data-i18n="foot_rights">Все права защищены.</span></div>
+      <div><a href="index.html" style="color: var(--accent);" data-i18n="nav_home">На главную</a></div>
+      <div data-i18n="foot_method">Сделано по методологии «СВЕТ»</div>
+    </div>
+  </footer>
+
+  <script>
+    const TKEY = 'lama-theme';
+    const savedTheme = localStorage.getItem(TKEY);
+    document.documentElement.dataset.theme = savedTheme || 'dark';
+    updateThemeBtn();
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem(TKEY, next);
+      updateThemeBtn();
+    }
+    function updateThemeBtn() {
+      const btn = document.querySelector('[data-theme-btn]');
+      if(btn) btn.setAttribute('aria-pressed', document.documentElement.dataset.theme === 'dark');
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const isActive = menu.classList.contains('active');
+      if (isActive) {
+        menu.classList.remove('active');
+        document.body.classList.remove('menu-open');
+      } else {
+        menu.classList.add('active');
+        document.body.classList.add('menu-open');
+      }
+    }
+
+    const I18N = {
+      ru: {
+        nav_home: 'Главная', nav_srv: 'Услуги', nav_cases: 'Кейсы', nav_contact: 'Контакты', nav_cta: 'Замер',
+        hero_tag: 'Lama Urban — Наружная реклама',
+        hero_title: 'Город спит.<br>Ваша вывеска — нет.',
+        hero_sub: 'Световые короба, объемные буквы, неон и медиафасады. Производим и монтируем вывески, которые невозможно не заметить. Превращаем прохожих в клиентов.',
+        hero_btn: 'Зажечь вывеску', hero_btn2: 'Наши работы',
+        p_tag: 'Почему это важно',
+        p_title: 'Тусклая вывеска = потерянные клиенты.',
+        p_text: 'В городском шуме побеждает тот, кто ярче. Если вашу вывеску не видно из-за угла, а вечером она сливается с темнотой — вы платите аренду за невидимый бизнес. Мы это исправляем.',
+        s_title: 'Станьте точкой притяжения.',
+        s_text: 'Мы проектируем и производим наружную рекламу, которая работает 24/7. Правильно подобранная температура света, качественные материалы и грамотный монтаж — ваша вывеска будет заметна и через 5 лет.',
+        s_btn: 'Обсудить вывеску',
+        srv_title: 'Что мы производим',
+        s1_title: 'Световые короба', s1_text: 'Лайтбоксы любой сложности. Яркие, энергоэффективные, надежные.',
+        s2_title: 'Объемные буквы', s2_text: 'От классического акрила до сложных композитных конструкций с подсветкой.',
+        s3_title: 'Неон и гибкий неон', s3_text: 'Создаем атмосферу. Идеально для баров, ресторанов и креативных пространств.',
+        s4_title: 'Медиафасады', s4_text: 'Динамичная реклама на весь фасад здания. Привлекает 100% внимания.',
+        srv_btn: 'Рассчитать стоимость',
+        mat_title: 'Только проверенные материалы',
+        mat_text: 'Мы не экономим на том, что висит на улице. Используем акрил ведущих производителей, светодиоды с гарантией 5 лет и антикоррозийную обработку металла. Ваша вывеска выдержит дождь, снег и перепады температур.',
+        m1: 'Акрил', m2: 'Композит', m3: 'LED', m4: 'Металл',
+        proc_title: 'От замера до включения',
+        p1_title: 'Замер', p1_text: 'Выезжаем на объект, оцениваем фасад, согласовываем место.',
+        p2_title: 'Проект', p2_text: 'Готовим 3D-визуализацию. Вы видите, как это будет выглядеть.',
+        p3_title: 'Производство', p3_text: 'Фрезеровка, сварка, сборка электрики. Всё в своем цеху.',
+        p4_title: 'Монтаж', p4_text: 'Привозим, вешаем, подключаем. Сдаем под ключ.',
+        proc_btn: 'Вызвать замерщика',
+        stat1: 'Вывесок установлено', stat2: 'Лет гарантии на LED', stat3: 'Кв.м. цеха', stat4: 'Посредников',
+        case_title: 'Свет, который продает',
+        c1_title: 'Неоновая вывеска', c1_text: 'Гибкий неон, сложная геометрия, влагозащита IP67.',
+        c2_title: 'Объемные буквы', c2_text: 'Световой короб с лицевой подсветкой. 12 метров.',
+        c3_title: 'Медиафасад', c3_text: 'Динамическая подсветка, управление со смартфона.',
+        case_btn: 'Хочу такую же',
+        prod_title: 'Свой цех — это ваша выгода.',
+        prod_text: 'Мы не перекупщики. У нас есть собственные станки (ЧПУ, лазер), сварка и покрасочная камера. Это значит: вы не платите наценку посредникам, а мы контролируем качество на каждом этапе.',
+        prod_btn: 'Приехать в цех',
+        team_title: 'Те, кто зажигает', team1: 'Константин Родин', team1_role: 'Со-основатель', team2: 'Юлия Горшкова', team2_role: 'Со-основатель', team3: 'Монтажная бригада', team3_role: 'Промышленный альпинизм',
+        rev_title: 'Отзывы',
+        gar_title: 'Железные гарантии', gar_text: 'Мы даем гарантию 3 года на конструкцию и 5 лет на светодиодные модули. Если что-то сломается — приедем и починим за свой счет. Для нас репутация дороже.', gar_btn: 'Запросить гарантию',
+        g1: 'Гарантия на монтаж', g2: 'Соблюдение сроков', g3: 'Помощь с согласованием',
+        faq_title: 'Вопросы',
+        f1_q: 'Сколько стоит вывеска?', f1_a: 'Стоимость зависит от типа, размера и подсветки. Простой лайтбокс — от 25 000 ₽. Объемные буквы — от 60 000 ₽. Точную смету дадим после замера.',
+        f2_q: 'Кто согласовывает вывеску с городом?', f2_a: 'Мы помогаем собрать пакет документов и проконсультируем по всем нормам. Если нужно — разработаем проект под требования администрации.',
+        f3_q: 'Что если вывеска сломается зимой?', f3_a: 'У нас есть гарантия на все светодиоды. Если перегорит модуль — заменим по гарантии. Конструкция рассчитана на любые погодные условия.',
+        phil_title: '«Ваша вывеска должна работать на вас. Даже когда вы спите».', phil_btn: 'Зажечь вывеску',
+        cont_title: 'Вызвать замерщика?', cont_text: 'Оставьте заявку. Мы приедем на объект, сделаем замеры и предложим 3 варианта решения с бюджетом. Бесплатно и без обязательств.',
+        form_name: 'Ваше имя', form_phone: 'Телефон / Telegram', form_msg: 'Адрес объекта или задача', form_btn: 'Вызвать замерщика', form_policy: 'Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.',
+        foot_rights: 'Все права защищены.', foot_method: 'Сделано по методологии «СВЕТ»'
+      },
+      en: {
+        nav_home: 'Home', nav_srv: 'Services', nav_cases: 'Cases', nav_contact: 'Contact', nav_cta: 'Measure',
+        hero_tag: 'Lama Urban — Outdoor Advertising',
+        hero_title: 'The city sleeps.<br>Your sign doesn\'t.',
+        hero_sub: 'Light boxes, 3D letters, neon, and media facades. We produce and install signs that are impossible to miss. Turning passersby into customers.',
+        hero_btn: 'Light up the sign', hero_btn2: 'Our works',
+        p_tag: 'Why it matters',
+        p_title: 'A dim sign = lost customers.',
+        p_text: 'In city noise, the brighter one wins. If your sign is not visible from around the corner and merges with the darkness in the evening, you are paying rent for an invisible business. We fix this.',
+        s_title: 'Become a point of attraction.',
+        s_text: 'We design and produce outdoor advertising that works 24/7. Properly selected light temperature, quality materials, and competent installation — your sign will be noticeable even after 5 years.',
+        s_btn: 'Discuss the sign',
+        srv_title: 'What we produce',
+        s1_title: 'Light boxes', s1_text: 'Lightboxes of any complexity. Bright, energy-efficient, reliable.',
+        s2_title: '3D letters', s2_text: 'From classic acrylic to complex composite structures with backlight.',
+        s3_title: 'Neon & flex neon', s3_text: 'Creating atmosphere. Ideal for bars, restaurants, and creative spaces.',
+        s4_title: 'Media facades', s4_text: 'Dynamic advertising on the entire building facade. Attracts 100% attention.',
+        srv_btn: 'Calculate cost',
+        mat_title: 'Only proven materials',
+        mat_text: 'We don\'t save on what hangs outside. We use acrylic from leading manufacturers, LEDs with a 5-year warranty, and anti-corrosion metal treatment. Your sign will withstand rain, snow, and temperature changes.',
+        m1: 'Acrylic', m2: 'Composite', m3: 'LED', m4: 'Metal',
+        proc_title: 'From measurement to switching on',
+        p1_title: 'Measurement', p1_text: 'We go to the site, evaluate the facade, agree on the location.',
+        p2_title: 'Project', p2_text: 'We prepare a 3D visualization. You see how it will look.',
+        p3_title: 'Production', p3_text: 'Milling, welding, electrical assembly. All in our own workshop.',
+        p4_title: 'Installation', p4_text: 'We deliver, hang, connect. Turnkey.',
+        proc_btn: 'Call a surveyor',
+        stat1: 'Signs installed', stat2: 'Years of LED warranty', stat3: 'Sq.m of workshop', stat4: 'Middlemen',
+        case_title: 'Light that sells',
+        c1_title: 'Neon sign', c1_text: 'Flex neon, complex geometry, IP67 waterproof.',
+        c2_title: '3D letters', c2_text: 'Light box with front lighting. 12 meters.',
+        c3_title: 'Media facade', c3_text: 'Dynamic lighting, smartphone control.',
+        case_btn: 'I want the same',
+        prod_title: 'Own workshop is your benefit.',
+        prod_text: 'We are not resellers. We have our own machines (CNC, laser), welding, and a spray booth. This means: you don\'t pay a markup to middlemen, and we control quality at every stage.',
+        prod_btn: 'Visit the workshop',
+        team_title: 'Those who light up', team1: 'Konstantin Rodin', team1_role: 'Co-founder', team2: 'Yulia Gorshkova', team2_role: 'Co-founder', team3: 'Installation team', team3_role: 'Industrial climbers',
+        rev_title: 'Reviews',
+        gar_title: 'Ironclad guarantees', gar_text: 'We give a 3-year warranty on the structure and 5 years on LED modules. If something breaks, we will come and fix it at our own expense. Reputation is more valuable to us.', gar_btn: 'Request warranty',
+        g1: 'Installation warranty', g2: 'Deadline compliance', g3: 'Permit assistance',
+        faq_title: 'FAQ',
+        f1_q: 'How much does a sign cost?', f1_a: 'The cost depends on the type, size, and lighting. A simple lightbox — from 25,000 RUB. 3D letters — from 60,000 RUB. We will give an exact estimate after measurement.',
+        f2_q: 'Who coordinates the sign with the city?', f2_a: 'We help collect the package of documents and consult on all norms. If necessary, we will develop a project according to the administration\'s requirements.',
+        f3_q: 'What if the sign breaks in winter?', f3_a: 'We have a warranty on all LEDs. If a module burns out, we will replace it under warranty. The structure is designed for any weather conditions.',
+        phil_title: '"Your sign should work for you. Even when you sleep."', phil_btn: 'Light up the sign',
+        cont_title: 'Call a surveyor?', cont_text: 'Leave a request. We will come to the site, take measurements, and offer 3 solutions with a budget. Free and without obligations.',
+        form_name: 'Your name', form_phone: 'Phone / Telegram', form_msg: 'Object address or task', form_btn: 'Call a surveyor', form_policy: 'By clicking the button, you agree to the privacy policy.',
+        foot_rights: 'All rights reserved.', foot_method: 'Made with "SVET" methodology'
+      }
+    };
+
+    const LKEY = 'lama-lang';
+    let currentLang = localStorage.getItem(LKEY) || 'ru';
+
+    function applyLang(l) {
+      document.documentElement.lang = l;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = I18N[l][el.dataset.i18n];
+        if (v) el.innerHTML = v; // Используем innerHTML для поддержки <br> в заголовке
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const v = I18N[l][el.dataset.i18nPh];
+        if (v) el.placeholder = v;
+      });
+      const btn = document.getElementById('langBtn');
+      if(btn) btn.textContent = l === 'ru' ? 'EN' : 'RU';
+      localStorage.setItem(LKEY, l);
+      currentLang = l;
+    }
+    function toggleLang() { applyLang(currentLang === 'ru' ? 'en' : 'ru'); }
+    applyLang(currentLang);
+
+    (function() {
+      if (matchMedia('(hover: none)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const a = document.querySelector('.blob-a'), b = document.querySelector('.blob-b');
+      let tx = 0, ty = 0, cx = 0, cy = 0;
+      addEventListener('pointermove', e => {
+        tx = e.clientX / innerWidth - .5;
+        ty = e.clientY / innerHeight - .5;
+      }, { passive: true });
+      (function loop() {
+        cx += (tx - cx) * .06;
+        cy += (ty - cy) * .06;
+        a.style.transform = `translate3d(${cx * 50}px, ${cy * 50}px, 0)`;
+        b.style.transform = `translate3d(${cx * -70}px, ${cy * -70}px, 0)`;
+        requestAnimationFrame(loop);
+      })();
+    })();
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    const counterIo = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          const target = +el.dataset.counter;
+          const duration = 2000;
+          const start = performance.now();
+          const update = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(easeOut * target);
+            if (progress < 1) requestAnimationFrame(update);
+            else el.textContent = target;
+          };
+          requestAnimationFrame(update);
+          counterIo.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('[data-counter]').forEach(el => counterIo.observe(el));
+
+    function toggleFaq(el) {
+      const item = el.parentElement;
+      const isActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+      if (!isActive) {
+        item.classList.add('active');
+        el.querySelector('span:last-child').textContent = '−';
+      } else {
+        el.querySelector('span:last-child').textContent = '+';
+      }
+    }
+
+    const LEAD_CONFIG = { channel: 'webhook', endpoint: 'https://your-crm.ru/api/leads' };
+    async function submitLead(lead) {
+      return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
+    }
+
+    const form = document.getElementById('leadForm');
+    form.dataset.loadedAt = Date.now();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      const phone = form.phone.value.replace(/[^\d+]/g, '');
+      const trap = form.company_website.value;
+      
+      if (trap) return; 
+      if (name.length < 2 || phone.length < 10) {
+        alert(currentLang === 'ru' ? 'Заполните все поля.' : 'Please fill all fields.');
+        return;
+      }
+      if (Date.now() - form.dataset.loadedAt < 3000) return;
+
+      const btn = form.querySelector('button[type=submit]');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = currentLang === 'ru' ? 'Отправка...' : 'Sending...';
+      
+      try {
+        await submitLead({ name, phone, source: location.href, ts: Date.now() });
+        form.innerHTML = `<div class="form-success">${currentLang === 'ru' ? 'Заявка принята. Мы свяжемся с вами!' : 'Request accepted. We will contact you!'}</div>`;
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('Error');
+      }
+    });
+  </script>
+</body>
+</html>

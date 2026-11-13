@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lama Print | Печать и Полиграфия</title>
+  <meta name="description" content="Тактильный маркетинг, который невозможно пролистать. Премиальная полиграфия, упаковка и POS-материалы. Собственная типография.">
+  <meta name="theme-color" content="#121212">
+  
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Unbounded:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================
+       01. ТОКЕНЫ (Бумажный / Маджента + Циан)
+       ========================================= */
+    :root {
+      --bg: #fcfbf9; /* Теплый бумажный */
+      --bg-2: #ffffff;
+      --fg: #151515;
+      --muted: #6b6b6b;
+      --line: rgba(21,21,21,.1);
+      --accent: #e5007e; /* Маджента */
+      --accent-2: #00a4e4; /* Циан */
+      --accent-glow: rgba(229,0,126,.15);
+      --blob-a: rgba(229,0,126,.15);
+      --blob-b: rgba(0,164,228,.15);
+      --font-h: 'Unbounded', system-ui, sans-serif;
+      --font-b: 'Inter', system-ui, sans-serif;
+      --wrap: min(1240px, 100% - 40px);
+      --rad: 20px;
+      --trans: .4s cubic-bezier(.2,.7,.2,1);
+    }
+
+    [data-theme="dark"] {
+      --bg: #121212;
+      --bg-2: #1a1a1a;
+      --fg: #f4f4f4;
+      --muted: #999999;
+      --line: rgba(255,255,255,.1);
+      --accent: #ff3399;
+      --accent-2: #00bfff;
+      --accent-glow: rgba(255,51,153,.2);
+      --blob-a: rgba(255,51,153,.15);
+      --blob-b: rgba(0,191,255,.15);
+    }
+
+    /* =========================================
+       02. СБРОС И БАЗА
+       ========================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 var(--font-b);
+      transition: background var(--trans), color var(--trans);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; transition: color .3s; }
+    ul { list-style: none; }
+    h1, h2, h3, h4 { font-family: var(--font-h); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+    h1 { font-size: clamp(2.5rem, 6vw, 5.5rem); font-weight: 800; margin-bottom: 24px; }
+    h2 { font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 24px; }
+    h3 { font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 16px; }
+    p { color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.15rem); max-width: 65ch; }
+    
+    /* =========================================
+       03. УТИЛИТЫ
+       ========================================= */
+    .wrap { width: var(--wrap); margin-inline: auto; }
+    .section { padding: clamp(60px, 10vw, 120px) 0; position: relative; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 16px 32px; border-radius: 100px; font: 600 1rem var(--font-b);
+      border: 1px solid var(--line); background: transparent; color: var(--fg);
+      cursor: pointer; transition: all .3s ease; text-align: center;
+    }
+    .btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-2px); background: var(--accent); color: #fff; }
+
+    .tag { display: inline-block; padding: 6px 14px; border-radius: 100px; border: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+
+    /* =========================================
+       04. КОМПОНЕНТЫ
+       ========================================= */
+    .blob {
+      position: fixed; border-radius: 50%; filter: blur(100px);
+      pointer-events: none; z-index: -1; will-change: transform;
+      transition: background .5s ease;
+    }
+    .blob-a { width: 60vmax; height: 60vmax; top: -20vmax; left: -10vmax; background: radial-gradient(circle, var(--blob-a), transparent 60%); }
+    .blob-b { width: 70vmax; height: 70vmax; bottom: -30vmax; right: -20vmax; background: radial-gradient(circle, var(--blob-b), transparent 65%); }
+    @media (hover: none), (prefers-reduced-motion: reduce) { .blob { display: none; } }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: blur(16px); border-bottom: 1px solid var(--line);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .logo { font-family: var(--font-h); font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; }
+    .nav { display: flex; gap: 24px; align-items: center; }
+    .nav a { font-size: 0.95rem; font-weight: 500; }
+    .nav a:hover { color: var(--accent); }
+    .nav-cta { display: none; }
+    
+    .controls { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); cursor: pointer; display: grid; place-items: center;
+      transition: all .3s;
+    }
+    .icon-btn:hover { border-color: var(--fg); background: var(--bg-2); }
+    .lang-btn { width: auto; padding: 0 16px; border-radius: 100px; font-weight: 600; font-size: .85rem; }
+    
+    .burger { display: none; }
+    
+    .mobile-menu {
+      position: fixed; top: 72px; left: 0; right: 0; bottom: 0;
+      background: var(--bg); z-index: 99;
+      padding: 40px; display: flex; flex-direction: column; gap: 24px;
+      transform: translateX(100%); transition: transform .4s ease;
+      border-top: 1px solid var(--line);
+    }
+    .mobile-menu.active { transform: none; }
+    .mobile-menu a { font-family: var(--font-h); font-size: 1.5rem; font-weight: 600; }
+    body.menu-open { overflow: hidden; }
+
+    .card {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--rad);
+      padding: 40px; transition: transform .4s, border-color .4s;
+    }
+    .card:hover { transform: translateY(-6px); border-color: var(--accent); }
+    .card-icon { font-size: 2rem; margin-bottom: 24px; color: var(--accent); }
+
+    .marquee { overflow: hidden; white-space: nowrap; border-block: 1px solid var(--line); padding: 20px 0; display: flex; background: var(--bg-2); }
+    .marquee-content { display: flex; gap: 40px; animation: scroll 20s linear infinite; font-family: var(--font-h); font-size: 1.2rem; text-transform: uppercase; color: var(--muted); }
+    @keyframes scroll { to { transform: translateX(-50%); } }
+
+    .faq-item { border-bottom: 1px solid var(--line); padding: 24px 0; }
+    .faq-q { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-family: var(--font-h); font-size: 1.2rem; font-weight: 500; }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+    .faq-a p { margin-top: 16px; }
+    .faq-item.active .faq-a { max-height: 200px; }
+
+    .form-group { margin-bottom: 20px; }
+    input, textarea {
+      width: 100%; padding: 16px 20px; border-radius: 12px; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); font: 1rem var(--font-b); transition: border-color .3s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    ::placeholder { color: var(--muted); opacity: 0.6; }
+    .form-success { color: var(--accent); font-weight: 600; padding: 20px; border: 1px solid var(--accent); border-radius: 12px; text-align: center; }
+
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .marquee-content { animation: none; }
+    }
+
+    .stat-num { font-family: var(--font-h); font-size: clamp(3rem, 6vw, 5rem); font-weight: 800; color: var(--accent); }
+
+    /* Специфичные стили для Print (CMYK полосы) */
+    .cmyk-bar {
+      display: flex; height: 8px; width: 100%; border-radius: 4px; overflow: hidden; margin-bottom: 24px;
+    }
+    .cmyk-bar span { flex: 1; }
+    .cmyk-bar span:nth-child(1) { background: #00a4e4; } /* Cyan */
+    .cmyk-bar span:nth-child(2) { background: #e5007e; } /* Magenta */
+    .cmyk-bar span:nth-child(3) { background: #ffe600; } /* Yellow */
+    .cmyk-bar span:nth-child(4) { background: #151515; } /* Key/Black */
+
+    @media (max-width: 1080px) {
+      .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .split { grid-template-columns: 1fr; gap: 40px; }
+      .nav-cta { display: none; }
+    }
+    @media (max-width: 880px) {
+      .nav { display: none; }
+      .burger { display: grid; }
+    }
+    @media (max-width: 620px) {
+      .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .header-inner { justify-content: space-between; }
+      .card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-a" aria-hidden="true"></div>
+  <div class="blob blob-b" aria-hidden="true"></div>
+
+  <header>
+    <div class="wrap header-inner">
+      <a href="index.html" class="logo">ЛАМА<span style="color:var(--accent)">.</span></a>
+      <nav class="nav">
+        <a href="index.html" data-i18n="nav_home">Главная</a>
+        <a href="#services" data-i18n="nav_srv">Услуги</a>
+        <a href="#portfolio" data-i18n="nav_cases">Кейсы</a>
+        <a href="#contact" data-i18n="nav_contact">Контакты</a>
+      </nav>
+      <div class="controls">
+        <a href="#contact" class="btn btn-primary nav-cta" style="padding: 10px 20px; font-size: 0.9rem;" data-i18n="nav_cta">Смета</a>
+        <button class="icon-btn" data-theme-btn onclick="toggleTheme()" aria-pressed="true" aria-label="Тема">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button class="icon-btn lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+        <button class="icon-btn burger" onclick="toggleMenu()" aria-label="Меню">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" onclick="toggleMenu()" data-i18n="nav_home">Главная</a>
+    <a href="#services" onclick="toggleMenu()" data-i18n="nav_srv">Услуги</a>
+    <a href="#portfolio" onclick="toggleMenu()" data-i18n="nav_cases">Кейсы</a>
+    <a href="#contact" onclick="toggleMenu()" data-i18n="nav_contact">Контакты</a>
+    <a href="#contact" onclick="toggleMenu()" class="btn btn-primary" style="margin-top: 24px;" data-i18n="nav_cta">Смета</a>
+  </div>
+
+  <main>
+    <!-- 01. HERO -->
+    <section class="section" style="min-height: 100svh; display: flex; align-items: center; padding-top: 100px;">
+      <div class="wrap split">
+        <div>
+          <div class="cmyk-bar reveal" style="max-width: 200px;"></div>
+          <div class="tag reveal" data-i18n="hero_tag">Lama Print — Печать и Полиграфия</div>
+          <h1 class="reveal" style="--d: .1s" data-i18n="hero_title">Ваш бренд заслуживает быть напечатанным.</h1>
+          <p class="reveal" style="--d: .2s; font-size: 1.3rem; margin-bottom: 40px;" data-i18n="hero_sub">Тактильный маркетинг, который невозможно пролистать. Премиальная полиграфия, упаковка и POS-материалы. Мы знаем, как заставить бумагу продавать.</p>
+          <div class="reveal" style="--d: .3s; display: flex; gap: 16px; flex-wrap: wrap;">
+            <a href="#contact" class="btn btn-primary" data-i18n="hero_btn">Рассчитать тираж</a>
+            <a href="#portfolio" class="btn" data-i18n="hero_btn2">Смотреть работы</a>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .4s; height: 500px; background: var(--bg-2); border-radius: var(--rad); border: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--accent) 0%, transparent 50%, var(--accent-2) 100%); opacity: 0.1;"></div>
+          <div style="font-family: var(--font-h); font-size: 3rem; color: var(--fg); z-index: 1;">CMYK</div>
+          <div style="font-size: 1rem; color: var(--muted); z-index: 1; margin-top: 10px;">Touch the quality</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02. ДОВЕРИЕ (Marquee) -->
+    <div class="marquee">
+      <div class="marquee-content">
+        <span>Визитки</span> <span>•</span> <span>Каталоги</span> <span>•</span> <span>Упаковка</span> <span>•</span> <span>POS-материалы</span> <span>•</span> <span>Тиснение</span> <span>•</span> <span>Софт-тач</span> <span>•</span>
+        <span>Визитки</span> <span>•</span> <span>Каталоги</span> <span>•</span> <span>Упаковка</span> <span>•</span> <span>POS-материалы</span> <span>•</span> <span>Тиснение</span> <span>•</span> <span>Софт-тач</span> <span>•</span>
+      </div>
+    </div>
+
+    <!-- 03. ПРОБЛЕМА (PAS - Problem) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <div class="tag reveal" style="border-color: var(--accent-2); color: var(--accent-2);" data-i18n="p_tag">Проблема</div>
+          <h2 class="reveal" style="--d: .1s" data-i18n="p_title">Цифровой дизайн мертв. Печатный — продает.</h2>
+          <p class="reveal" style="--d: .2s" data-i18n="p_text">В мире, где всё ушло в экраны, физический контакт с брендом стоит дорого. Клиенты забывают баннеры, но помнят тактильные ощущения от качественной упаковки. Дешевая бумага и бледная печать убивают премиальность вашего продукта еще до того, как его увидят.</p>
+        </div>
+        <div class="reveal" style="--d: .3s; height: 300px; background: var(--bg-2); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; font-size: 4rem; color: var(--accent-2);">
+          📄
+        </div>
+      </div>
+    </section>
+
+    <!-- 04. РЕШЕНИЕ (PAS - Solution) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal" style="--d: .1s; height: 300px; background: var(--bg); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; font-size: 4rem; color: var(--accent);">
+          ✨
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="s_title">Мы печатаем впечатления.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="s_text">Мы используем только премиальные материалы: от дизайнерского картона до фактурной бумаги с покрытием Soft Touch. Наши станки передают каждый оттенок вашего фирменного стиля. Вы получаете не просто листовки, а инструмент, который хочется взять в руки.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn btn-primary" data-i18n="s_btn">Заказать образцы</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05. УСЛУГИ (Interest) -->
+    <section class="section" id="services">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="srv_title">Что мы печатаем</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s">
+            <div class="card-icon">📇</div>
+            <h3 data-i18n="s1_title">Визитки</h3>
+            <p data-i18n="s1_text">От классических до дизайнерских. Тиснение, вырубка, софт-тач.</p>
+          </div>
+          <div class="card reveal" style="--d: .2s">
+            <div class="card-icon">📚</div>
+            <h3 data-i18n="s2_title">Каталоги и книги</h3>
+            <p data-i18n="s2_text">Журналы, меню, годовые отчеты. Идеальная сшивка и цветопередача.</p>
+          </div>
+          <div class="card reveal" style="--d: .3s">
+            <div class="card-icon">📦</div>
+            <h3 data-i18n="s3_title">Упаковка</h3>
+            <p data-i18n="s3_text">Коробки, пакеты, этикетки. Превращаем продукт в подарок.</p>
+          </div>
+          <div class="card reveal" style="--d: .4s">
+            <div class="card-icon">🛍</div>
+            <h3 data-i18n="s4_title">POS-материалы</h3>
+            <p data-i18n="s4_text">Воблеры, шелфтокеры, ценники. Реклама, которая работает в зале.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="srv_btn">Получить прайс</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06. МАТЕРИАЛЫ (Desire) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="mat_title">Тактильное разнообразие</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="mat_text">Бумага может быть разной на ощупь. Мы подберем материал, который подчеркнет характер вашего бренда. Хотите бархатную поверхность? Софт-тач. Нужен эффект дорогого виски? Крафт и тиснение.</p>
+        </div>
+        <div class="grid-4 reveal" style="--d: .2s; grid-template-columns: 1fr 1fr;">
+          <div class="card" style="padding: 20px; text-align: center; border-color: var(--accent);"><strong data-i18n="m1">Soft Touch</strong></div>
+          <div class="card" style="padding: 20px; text-align: center; border-color: var(--accent-2);"><strong data-i18n="m2">Крафт</strong></div>
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m3">Тиснение</strong></div>
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m4">УФ-лак</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07. ПРОЦЕСС (Desire) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="proc_title">От макета до тиража</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="reveal" style="--d: .1s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">01</div>
+            <h3 data-i18n="p1_title">Препресс</h3>
+            <p data-i18n="p1_text">Проверяем макет на ошибки, готовим к печати, работаем с цветом.</p>
+          </div>
+          <div class="reveal" style="--d: .2s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">02</div>
+            <h3 data-i18n="p2_title">Цветопроба</h3>
+            <p data-i18n="p2_text">Печатаем тестовый экземпляр. Вы утверждаете цвет и фактуру.</p>
+          </div>
+          <div class="reveal" style="--d: .3s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">03</div>
+            <h3 data-i18n="p3_title">Печать</h3>
+            <p data-i18n="p3_text">Запускаем тираж на профессиональном оборудовании.</p>
+          </div>
+          <div class="reveal" style="--d: .4s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">04</div>
+            <h3 data-i18n="p4_title">Постобработка</h3>
+            <p data-i18n="p4_text">Резка, биговка, тиснение, сборка. Доводим до идеала.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn btn-primary" data-i18n="proc_btn">Запустить тираж</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08. ЦИФРЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap grid-4">
+        <div class="reveal" style="text-align: center;">
+          <div class="stat-num" data-counter="500">0</div>
+          <p data-i18n="stat1">Тонн бумаги напечатано</p>
+        </div>
+        <div class="reveal" style="--d: .1s; text-align: center;">
+          <div class="stat-num" data-counter="10">0</div>
+          <p data-i18n="stat2">Лет опыта в печати</p>
+        </div>
+        <div class="reveal" style="--d: .2s; text-align: center;">
+          <div class="stat-num" data-counter="100">0</div>
+          <p data-i18n="stat3">Процентов попадания в цвет</p>
+        </div>
+        <div class="reveal" style="--d: .3s; text-align: center;">
+          <div class="stat-num" data-counter="0">0</div>
+          <p data-i18n="stat4">Посредников</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09. КЕЙСЫ (Desire) -->
+    <section class="section" id="portfolio">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="case_title">Наши работы</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #e5007e, #ff66b2); display: grid; place-items: center; color: #fff; font-family: var(--font-h); font-size: 1.5rem;">Кофейня</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c1_title">Упаковка для кофе</h3>
+              <p data-i18n="c1_text">Крафт-бумага, тиснение фольгой, клапан с магнитом.</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .2s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #00a4e4, #66d9ff); display: grid; place-items: center; color: #fff; font-family: var(--font-h); font-size: 1.5rem;">Барбершоп</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c2_title">Визитки с софт-тач</h3>
+              <p data-i18n="c2_text">Черная бумага 600г, матовая ламинация, белое тиснение.</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .3s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #151515, #4a4a4a); display: grid; place-items: center; color: #fff; font-family: var(--font-h); font-size: 1.5rem;">Меню</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c3_title">Меню ресторана</h3>
+              <p data-i18n="c3_text">Кожаная обложка, золотой срез, шелковая закладка.</p>
+            </div>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .4s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="case_btn">Хочу так же</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. ПРОИЗВОДСТВО (Trust) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal" style="--d: .1s; height: 400px; background: var(--bg); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted);">
+          [Фото печатного станка]
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="prod_title">Собственная типография.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="prod_text">Мы не отправляем заказы «на сторону». У нас стоят офсетные и цифровые машины ведущих брендов. Это значит, что мы контролируем качество каждой страницы и не задерживаем сроки из-за подрядчиков.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="prod_btn">Приехать в типографию</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. ОСНОВАТЕЛИ (Trust) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="team_title">Те, кто печатает</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team1">Константин Родин</h3>
+            <p style="color: var(--accent);" data-i18n="team1_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .2s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team2">Юлия Горшкова</h3>
+            <p style="color: var(--accent);" data-i18n="team2_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .3s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">🖨</div>
+            <h3 data-i18n="team3">Печатники</h3>
+            <p style="color: var(--accent);" data-i18n="team3_role">Мастера цвета</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. ОТЗЫВЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="rev_title">Отзывы</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Печатали упаковку для косметики. Цвет попали идеально в Pantone. Клиенты в восторге от тактильности".</p>
+            <div style="font-weight: 600;">Елена, бренд косметики</div>
+          </div>
+          <div class="card reveal" style="--d: .2s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Сделали каталог на 100 страниц за 5 дней. Сшивка идеальная, ни одна страница не выпала".</p>
+            <div style="font-weight: 600;">Дмитрий, мебельная фабрика</div>
+          </div>
+          <div class="card reveal" style="--d: .3s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Визитки с софт-тач — это что-то. Люди их не выбрасывают, а уносят домой".</p>
+            <div style="font-weight: 600;">Анна, стоматология</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. ГАРАНТИИ (Risk Reversal) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="gar_title">Гарантии качества</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="gar_text">Мы отвечаем за цвет. Если оттенок на тираже отличается от утвержденной цветопробы — мы перепечатываем тираж за свой счет. Ваша репутация не пострадает.</p>
+          <div class="reveal" style="--d: .2s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="gar_btn">Обсудить проект</a>
+          </div>
+        </div>
+        <div class="grid-3 reveal" style="--d: .3s; grid-template-columns: 1fr;">
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g1">Контроль цвета (спектрофотометр)</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g2">Соблюдение сроков</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g3">Бесплатная цветопроба</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. FAQ -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap" style="max-width: 800px;">
+        <h2 class="reveal" style="text-align: center; margin-bottom: 60px;" data-i18n="faq_title">Вопросы</h2>
+        
+        <div class="faq-item reveal" style="--d: .1s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f1_q">Какой минимальный тираж?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f1_a">От 100 экземпляров для цифровой печати. Для офсета — от 500. Мы работаем с любыми объемами.</p></div>
+        </div>
+        
+        <div class="faq-item reveal" style="--d: .2s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f2_q">Вы работаете с Pantone?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f2_a">Да, мы печатаем как в CMYK, так и смесевыми красками Pantone. Точное попадание в фирменный цвет гарантируем.</p></div>
+        </div>
+
+        <div class="faq-item reveal" style="--d: .3s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f3_q">Сколько ждать заказ?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f3_a">Визитки — 2-3 дня. Каталоги и упаковка — от 5 до 10 дней в зависимости от сложности постобработки.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15. ВЫЗОВ (Urgency) -->
+    <section class="section" style="text-align: center;">
+      <div class="wrap">
+        <h2 class="reveal" style="--d: .1s; font-size: clamp(2rem, 5vw, 4rem); max-width: 900px; margin-inline: auto; line-height: 1.2;" data-i18n="phil_title">«Печатный станок уже скучает по вашему дизайну».</h2>
+        <div class="reveal" style="--d: .2s; margin-top: 40px;">
+          <a href="#contact" class="btn btn-primary" style="font-size: 1.1rem; padding: 20px 40px;" data-i18n="phil_btn">Запустить печать</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16. КОНТАКТЫ (Action) -->
+    <section class="section" id="contact" style="background: var(--bg-2); border-top: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="cont_title">Рассчитать тираж?</h2>
+          <p class="reveal" style="--d: .1s; margin-bottom: 40px;" data-i18n="cont_text">Оставьте заявку. Пришлите макет или опишите задачу. Мы сделаем расчет сметы в течение 2 часов и предложим лучшие материалы.</p>
+          <div class="reveal" style="--d: .2s; font-family: var(--font-h); font-size: 1.2rem;">print@lama.ru</div>
+          <div class="reveal" style="--d: .3s; font-family: var(--font-h); font-size: 1.2rem; margin-top: 8px;">+7 (999) 123-45-67</div>
+        </div>
+        
+        <form class="reveal" style="--d: .3s" id="leadForm" novalidate>
+          <div class="form-group">
+            <input type="text" name="name" data-i18n-ph="form_name" placeholder="Ваше имя" required>
+          </div>
+          <div class="form-group">
+            <input type="tel" name="phone" data-i18n-ph="form_phone" placeholder="Телефон / Telegram" required>
+          </div>
+          <div class="form-group">
+            <textarea name="msg" rows="3" data-i18n-ph="form_msg" placeholder="Что нужно напечатать? (тираж, материалы)"></textarea>
+          </div>
+          
+          <input type="text" name="company_website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="form_btn">Получить смету</button>
+          <p style="font-size: 0.8rem; margin-top: 12px; text-align: center; opacity: 0.6;" data-i18n="form_policy">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top: 1px solid var(--line); padding: 40px 0; background: var(--bg);">
+    <div class="wrap" style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 РПК «Лама». <span data-i18n="foot_rights">Все права защищены.</span></div>
+      <div><a href="index.html" style="color: var(--accent);" data-i18n="nav_home">На главную</a></div>
+      <div data-i18n="foot_method">Сделано по методологии «СВЕТ»</div>
+    </div>
+  </footer>
+
+  <script>
+    const TKEY = 'lama-theme';
+    const savedTheme = localStorage.getItem(TKEY);
+    document.documentElement.dataset.theme = savedTheme || 'dark';
+    updateThemeBtn();
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem(TKEY, next);
+      updateThemeBtn();
+    }
+    function updateThemeBtn() {
+      const btn = document.querySelector('[data-theme-btn]');
+      if(btn) btn.setAttribute('aria-pressed', document.documentElement.dataset.theme === 'dark');
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const isActive = menu.classList.contains('active');
+      if (isActive) {
+        menu.classList.remove('active');
+        document.body.classList.remove('menu-open');
+      } else {
+        menu.classList.add('active');
+        document.body.classList.add('menu-open');
+      }
+    }
+
+    const I18N = {
+      ru: {
+        nav_home: 'Главная', nav_srv: 'Услуги', nav_cases: 'Кейсы', nav_contact: 'Контакты', nav_cta: 'Смета',
+        hero_tag: 'Lama Print — Печать и Полиграфия',
+        hero_title: 'Ваш бренд заслуживает быть напечатанным.',
+        hero_sub: 'Тактильный маркетинг, который невозможно пролистать. Премиальная полиграфия, упаковка и POS-материалы. Мы знаем, как заставить бумагу продавать.',
+        hero_btn: 'Рассчитать тираж', hero_btn2: 'Смотреть работы',
+        p_tag: 'Проблема',
+        p_title: 'Цифровой дизайн мертв. Печатный — продает.',
+        p_text: 'В мире, где всё ушло в экраны, физический контакт с брендом стоит дорого. Клиенты забывают баннеры, но помнят тактильные ощущения от качественной упаковки. Дешевая бумага и бледная печать убивают премиальность вашего продукта еще до того, как его увидят.',
+        s_title: 'Мы печатаем впечатления.',
+        s_text: 'Мы используем только премиальные материалы: от дизайнерского картона до фактурной бумаги с покрытием Soft Touch. Наши станки передают каждый оттенок вашего фирменного стиля. Вы получаете не просто листовки, а инструмент, который хочется взять в руки.',
+        s_btn: 'Заказать образцы',
+        srv_title: 'Что мы печатаем',
+        s1_title: 'Визитки', s1_text: 'От классических до дизайнерских. Тиснение, вырубка, софт-тач.',
+        s2_title: 'Каталоги и книги', s2_text: 'Журналы, меню, годовые отчеты. Идеальная сшивка и цветопередача.',
+        s3_title: 'Упаковка', s3_text: 'Коробки, пакеты, этикетки. Превращаем продукт в подарок.',
+        s4_title: 'POS-материалы', s4_text: 'Воблеры, шелфтокеры, ценники. Реклама, которая работает в зале.',
+        srv_btn: 'Получить прайс',
+        mat_title: 'Тактильное разнообразие',
+        mat_text: 'Бумага может быть разной на ощупь. Мы подберем материал, который подчеркнет характер вашего бренда. Хотите бархатную поверхность? Софт-тач. Нужен эффект дорогого виски? Крафт и тиснение.',
+        m1: 'Soft Touch', m2: 'Крафт', m3: 'Тиснение', m4: 'УФ-лак',
+        proc_title: 'От макета до тиража',
+        p1_title: 'Препресс', p1_text: 'Проверяем макет на ошибки, готовим к печати, работаем с цветом.',
+        p2_title: 'Цветопроба', p2_text: 'Печатаем тестовый экземпляр. Вы утверждаете цвет и фактуру.',
+        p3_title: 'Печать', p3_text: 'Запускаем тираж на профессиональном оборудовании.',
+        p4_title: 'Постобработка', p4_text: 'Резка, биговка, тиснение, сборка. Доводим до идеала.',
+        proc_btn: 'Запустить тираж',
+        stat1: 'Тонн бумаги напечатано', stat2: 'Лет опыта в печати', stat3: 'Процентов попадания в цвет', stat4: 'Посредников',
+        case_title: 'Наши работы',
+        c1_title: 'Упаковка для кофе', c1_text: 'Крафт-бумага, тиснение фольгой, клапан с магнитом.',
+        c2_title: 'Визитки с софт-тач', c2_text: 'Черная бумага 600г, матовая ламинация, белое тиснение.',
+        c3_title: 'Меню ресторана', c3_text: 'Кожаная обложка, золотой срез, шелковая закладка.',
+        case_btn: 'Хочу так же',
+        prod_title: 'Собственная типография.',
+        prod_text: 'Мы не отправляем заказы «на сторону». У нас стоят офсетные и цифровые машины ведущих брендов. Это значит, что мы контролируем качество каждой страницы и не задерживаем сроки из-за подрядчиков.',
+        prod_btn: 'Приехать в типографию',
+        team_title: 'Те, кто печатает', team1: 'Константин Родин', team1_role: 'Со-основатель', team2: 'Юлия Горшкова', team2_role: 'Со-основатель', team3: 'Печатники', team3_role: 'Мастера цвета',
+        rev_title: 'Отзывы',
+        gar_title: 'Гарантии качества', gar_text: 'Мы отвечаем за цвет. Если оттенок на тираже отличается от утвержденной цветопробы — мы перепечатываем тираж за свой счет. Ваша репутация не пострадает.', gar_btn: 'Обсудить проект',
+        g1: 'Контроль цвета (спектрофотометр)', g2: 'Соблюдение сроков', g3: 'Бесплатная цветопроба',
+        faq_title: 'Вопросы',
+        f1_q: 'Какой минимальный тираж?', f1_a: 'От 100 экземпляров для цифровой печати. Для офсета — от 500. Мы работаем с любыми объемами.',
+        f2_q: 'Вы работаете с Pantone?', f2_a: 'Да, мы печатаем как в CMYK, так и смесевыми красками Pantone. Точное попадание в фирменный цвет гарантируем.',
+        f3_q: 'Сколько ждать заказ?', f3_a: 'Визитки — 2-3 дня. Каталоги и упаковка — от 5 до 10 дней в зависимости от сложности постобработки.',
+        phil_title: '«Печатный станок уже скучает по вашему дизайну».', phil_btn: 'Запустить печать',
+        cont_title: 'Рассчитать тираж?', cont_text: 'Оставьте заявку. Пришлите макет или опишите задачу. Мы сделаем расчет сметы в течение 2 часов и предложим лучшие материалы.',
+        form_name: 'Ваше имя', form_phone: 'Телефон / Telegram', form_msg: 'Что нужно напечатать? (тираж, материалы)', form_btn: 'Получить смету', form_policy: 'Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.',
+        foot_rights: 'Все права защищены.', foot_method: 'Сделано по методологии «СВЕТ»'
+      },
+      en: {
+        nav_home: 'Home', nav_srv: 'Services', nav_cases: 'Cases', nav_contact: 'Contact', nav_cta: 'Estimate',
+        hero_tag: 'Lama Print — Printing & Polygraphy',
+        hero_title: 'Your brand deserves to be printed.',
+        hero_sub: 'Tactile marketing that cannot be scrolled past. Premium polygraphy, packaging, and POS materials. We know how to make paper sell.',
+        hero_btn: 'Calculate print run', hero_btn2: 'View works',
+        p_tag: 'Problem',
+        p_title: 'Digital design is dead. Print sells.',
+        p_text: 'In a world where everything has gone to screens, physical contact with a brand is expensive. Clients forget banners but remember tactile sensations from quality packaging. Cheap paper and pale printing kill the premium feel of your product before it is even seen.',
+        s_title: 'We print impressions.',
+        s_text: 'We use only premium materials: from designer cardboard to textured Soft Touch paper. Our machines convey every shade of your corporate identity. You get not just flyers, but a tool you want to pick up.',
+        s_btn: 'Order samples',
+        srv_title: 'What we print',
+        s1_title: 'Business cards', s1_text: 'From classic to designer. Embossing, die-cutting, soft-touch.',
+        s2_title: 'Catalogs & books', s2_text: 'Magazines, menus, annual reports. Perfect binding and color reproduction.',
+        s3_title: 'Packaging', s3_text: 'Boxes, bags, labels. Turning the product into a gift.',
+        s4_title: 'POS materials', s4_text: 'Wobblers, shelf talkers, price tags. Advertising that works on the floor.',
+        srv_btn: 'Get price list',
+        mat_title: 'Tactile diversity',
+        mat_text: 'Paper can feel different. We will select a material that emphasizes the character of your brand. Want a velvety surface? Soft-touch. Need the effect of expensive whiskey? Kraft and embossing.',
+        m1: 'Soft Touch', m2: 'Kraft', m3: 'Embossing', m4: 'UV varnish',
+        proc_title: 'From layout to print run',
+        p1_title: 'Prepress', p1_text: 'Checking the layout for errors, preparing for printing, working with color.',
+        p2_title: 'Color proof', p2_text: 'Printing a test copy. You approve the color and texture.',
+        p3_title: 'Printing', p3_text: 'Launching the print run on professional equipment.',
+        p4_title: 'Post-press', p4_text: 'Cutting, creasing, embossing, assembly. Bringing to perfection.',
+        proc_btn: 'Start print run',
+        stat1: 'Tons of paper printed', stat2: 'Years of printing experience', stat3: 'Percent color accuracy', stat4: 'Middlemen',
+        case_title: 'Our works',
+        c1_title: 'Coffee packaging', c1_text: 'Kraft paper, foil embossing, magnetic flap.',
+        c2_title: 'Soft-touch business cards', c2_text: '600g black paper, matte lamination, white embossing.',
+        c3_title: 'Restaurant menu', c3_text: 'Leather cover, gold edge, silk bookmark.',
+        case_btn: 'I want the same',
+        prod_title: 'Own printing house.',
+        prod_text: 'We don\'t send orders "to the side". We have offset and digital machines from leading brands. This means we control the quality of every page and don\'t delay deadlines due to contractors.',
+        prod_btn: 'Visit the printing house',
+        team_title: 'Those who print', team1: 'Konstantin Rodin', team1_role: 'Co-founder', team2: 'Yulia Gorshkova', team2_role: 'Co-founder', team3: 'Printers', team3_role: 'Masters of color',
+        rev_title: 'Reviews',
+        gar_title: 'Quality guarantees', gar_text: 'We are responsible for color. If the shade on the print run differs from the approved color proof, we will reprint the run at our own expense. Your reputation will not suffer.', gar_btn: 'Discuss project',
+        g1: 'Color control (spectrophotometer)', g2: 'Deadline compliance', g3: 'Free color proof',
+        faq_title: 'FAQ',
+        f1_q: 'What is the minimum print run?', f1_a: 'From 100 copies for digital printing. For offset — from 500. We work with any volumes.',
+        f2_q: 'Do you work with Pantone?', f2_a: 'Yes, we print both in CMYK and with Pantone spot colors. We guarantee exact match to the brand color.',
+        f3_q: 'How long to wait for an order?', f3_a: 'Business cards — 2-3 days. Catalogs and packaging — from 5 to 10 days depending on the complexity of post-press.',
+        phil_title: '"The printing press is already missing your design."', phil_btn: 'Start printing',
+        cont_title: 'Calculate print run?', cont_text: 'Leave a request. Send a layout or describe the task. We will calculate the estimate within 2 hours and suggest the best materials.',
+        form_name: 'Your name', form_phone: 'Phone / Telegram', form_msg: 'What needs to be printed? (run, materials)', form_btn: 'Get estimate', form_policy: 'By clicking the button, you agree to the privacy policy.',
+        foot_rights: 'All rights reserved.', foot_method: 'Made with "SVET" methodology'
+      }
+    };
+
+    const LKEY = 'lama-lang';
+    let currentLang = localStorage.getItem(LKEY) || 'ru';
+
+    function applyLang(l) {
+      document.documentElement.lang = l;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = I18N[l][el.dataset.i18n];
+        if (v) el.innerHTML = v;
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const v = I18N[l][el.dataset.i18nPh];
+        if (v) el.placeholder = v;
+      });
+      const btn = document.getElementById('langBtn');
+      if(btn) btn.textContent = l === 'ru' ? 'EN' : 'RU';
+      localStorage.setItem(LKEY, l);
+      currentLang = l;
+    }
+    function toggleLang() { applyLang(currentLang === 'ru' ? 'en' : 'ru'); }
+    applyLang(currentLang);
+
+    (function() {
+      if (matchMedia('(hover: none)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const a = document.querySelector('.blob-a'), b = document.querySelector('.blob-b');
+      let tx = 0, ty = 0, cx = 0, cy = 0;
+      addEventListener('pointermove', e => {
+        tx = e.clientX / innerWidth - .5;
+        ty = e.clientY / innerHeight - .5;
+      }, { passive: true });
+      (function loop() {
+        cx += (tx - cx) * .06;
+        cy += (ty - cy) * .06;
+        a.style.transform = `translate3d(${cx * 50}px, ${cy * 50}px, 0)`;
+        b.style.transform = `translate3d(${cx * -70}px, ${cy * -70}px, 0)`;
+        requestAnimationFrame(loop);
+      })();
+    })();
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    const counterIo = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          const target = +el.dataset.counter;
+          const duration = 2000;
+          const start = performance.now();
+          const update = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(easeOut * target);
+            if (progress < 1) requestAnimationFrame(update);
+            else el.textContent = target;
+          };
+          requestAnimationFrame(update);
+          counterIo.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('[data-counter]').forEach(el => counterIo.observe(el));
+
+    function toggleFaq(el) {
+      const item = el.parentElement;
+      const isActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+      if (!isActive) {
+        item.classList.add('active');
+        el.querySelector('span:last-child').textContent = '−';
+      } else {
+        el.querySelector('span:last-child').textContent = '+';
+      }
+    }
+
+    const LEAD_CONFIG = { channel: 'webhook', endpoint: 'https://your-crm.ru/api/leads' };
+    async function submitLead(lead) {
+      return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
+    }
+
+    const form = document.getElementById('leadForm');
+    form.dataset.loadedAt = Date.now();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      const phone = form.phone.value.replace(/[^\d+]/g, '');
+      const trap = form.company_website.value;
+      
+      if (trap) return; 
+      if (name.length < 2 || phone.length < 10) {
+        alert(currentLang === 'ru' ? 'Заполните все поля.' : 'Please fill all fields.');
+        return;
+      }
+      if (Date.now() - form.dataset.loadedAt < 3000) return;
+
+      const btn = form.querySelector('button[type=submit]');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = currentLang === 'ru' ? 'Отправка...' : 'Sending...';
+      
+      try {
+        await submitLead({ name, phone, source: location.href, ts: Date.now() });
+        form.innerHTML = `<div class="form-success">${currentLang === 'ru' ? 'Заявка принята. Мы свяжемся с вами!' : 'Request accepted. We will contact you!'}</div>`;
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('Error');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lama Space | Стенды и Конструкции</title>
+  <meta name="description" content="Проектируем и строим выставочные стенды, торговое оборудование и промо-зоны. 3D-визуализация, собственный цех, монтаж под ключ.">
+  <meta name="theme-color" content="#0b1120">
+  
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Unbounded:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================
+       01. ТОКЕНЫ (Стальной синий + Сигнальный оранжевый)
+       ========================================= */
+    :root {
+      --bg: #f4f6f8; /* Светлый бетон */
+      --bg-2: #ffffff;
+      --fg: #0f172a; /* Темный синий */
+      --muted: #64748b;
+      --line: rgba(15,23,42,.1);
+      --accent: #f97316; /* Оранжевый */
+      --accent-2: #3b82f6; /* Синий */
+      --accent-glow: rgba(249,115,22,.15);
+      --blob-a: rgba(59,130,246,.15);
+      --blob-b: rgba(249,115,22,.15);
+      --font-h: 'Unbounded', system-ui, sans-serif;
+      --font-b: 'Inter', system-ui, sans-serif;
+      --wrap: min(1240px, 100% - 40px);
+      --rad: 20px;
+      --trans: .4s cubic-bezier(.2,.7,.2,1);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1120; /* Глубокий стальной */
+      --bg-2: #111827;
+      --fg: #f1f5f9;
+      --muted: #94a3b8;
+      --line: rgba(255,255,255,.1);
+      --accent: #fb923c;
+      --accent-2: #60a5fa;
+      --accent-glow: rgba(251,146,60,.2);
+      --blob-a: rgba(96,165,250,.15);
+      --blob-b: rgba(251,146,60,.15);
+    }
+
+    /* =========================================
+       02. СБРОС И БАЗА
+       ========================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 var(--font-b);
+      transition: background var(--trans), color var(--trans);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; transition: color .3s; }
+    ul { list-style: none; }
+    h1, h2, h3, h4 { font-family: var(--font-h); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+    h1 { font-size: clamp(2.5rem, 6vw, 5.5rem); font-weight: 800; margin-bottom: 24px; }
+    h2 { font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 24px; }
+    h3 { font-size: clamp(1.2rem, 2vw, 1.8rem); margin-bottom: 16px; }
+    p { color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.15rem); max-width: 65ch; }
+    
+    /* =========================================
+       03. УТИЛИТЫ
+       ========================================= */
+    .wrap { width: var(--wrap); margin-inline: auto; }
+    .section { padding: clamp(60px, 10vw, 120px) 0; position: relative; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 16px 32px; border-radius: 100px; font: 600 1rem var(--font-b);
+      border: 1px solid var(--line); background: transparent; color: var(--fg);
+      cursor: pointer; transition: all .3s ease; text-align: center;
+    }
+    .btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-2px); background: var(--accent); color: #fff; }
+
+    .tag { display: inline-block; padding: 6px 14px; border-radius: 100px; border: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+
+    /* =========================================
+       04. КОМПОНЕНТЫ
+       ========================================= */
+    .blob {
+      position: fixed; border-radius: 50%; filter: blur(100px);
+      pointer-events: none; z-index: -1; will-change: transform;
+      transition: background .5s ease;
+    }
+    .blob-a { width: 60vmax; height: 60vmax; top: -20vmax; left: -10vmax; background: radial-gradient(circle, var(--blob-a), transparent 60%); }
+    .blob-b { width: 70vmax; height: 70vmax; bottom: -30vmax; right: -20vmax; background: radial-gradient(circle, var(--blob-b), transparent 65%); }
+    @media (hover: none), (prefers-reduced-motion: reduce) { .blob { display: none; } }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: blur(16px); border-bottom: 1px solid var(--line);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .logo { font-family: var(--font-h); font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; }
+    .nav { display: flex; gap: 24px; align-items: center; }
+    .nav a { font-size: 0.95rem; font-weight: 500; }
+    .nav a:hover { color: var(--accent); }
+    .nav-cta { display: none; }
+    
+    .controls { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); cursor: pointer; display: grid; place-items: center;
+      transition: all .3s;
+    }
+    .icon-btn:hover { border-color: var(--fg); background: var(--bg-2); }
+    .lang-btn { width: auto; padding: 0 16px; border-radius: 100px; font-weight: 600; font-size: .85rem; }
+    
+    .burger { display: none; }
+    
+    .mobile-menu {
+      position: fixed; top: 72px; left: 0; right: 0; bottom: 0;
+      background: var(--bg); z-index: 99;
+      padding: 40px; display: flex; flex-direction: column; gap: 24px;
+      transform: translateX(100%); transition: transform .4s ease;
+      border-top: 1px solid var(--line);
+    }
+    .mobile-menu.active { transform: none; }
+    .mobile-menu a { font-family: var(--font-h); font-size: 1.5rem; font-weight: 600; }
+    body.menu-open { overflow: hidden; }
+
+    .card {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--rad);
+      padding: 40px; transition: transform .4s, border-color .4s;
+    }
+    .card:hover { transform: translateY(-6px); border-color: var(--accent); }
+    .card-icon { font-size: 2rem; margin-bottom: 24px; color: var(--accent); }
+
+    .marquee { overflow: hidden; white-space: nowrap; border-block: 1px solid var(--line); padding: 20px 0; display: flex; background: var(--bg-2); }
+    .marquee-content { display: flex; gap: 40px; animation: scroll 20s linear infinite; font-family: var(--font-h); font-size: 1.2rem; text-transform: uppercase; color: var(--muted); }
+    @keyframes scroll { to { transform: translateX(-50%); } }
+
+    .faq-item { border-bottom: 1px solid var(--line); padding: 24px 0; }
+    .faq-q { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-family: var(--font-h); font-size: 1.2rem; font-weight: 500; }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+    .faq-a p { margin-top: 16px; }
+    .faq-item.active .faq-a { max-height: 200px; }
+
+    .form-group { margin-bottom: 20px; }
+    input, textarea {
+      width: 100%; padding: 16px 20px; border-radius: 12px; border: 1px solid var(--line);
+      background: transparent; color: var(--fg); font: 1rem var(--font-b); transition: border-color .3s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    ::placeholder { color: var(--muted); opacity: 0.6; }
+    .form-success { color: var(--accent); font-weight: 600; padding: 20px; border: 1px solid var(--accent); border-radius: 12px; text-align: center; }
+
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .marquee-content { animation: none; }
+    }
+
+    .stat-num { font-family: var(--font-h); font-size: clamp(3rem, 6vw, 5rem); font-weight: 800; color: var(--accent); }
+
+    /* Специфичные стили для Space (Чертежная сетка) */
+    .blueprint-grid {
+      background-image: 
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-position: center center;
+      border-radius: var(--rad);
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+    .blueprint-grid::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at center, transparent 30%, var(--bg-2) 100%);
+    }
+    
+    .structure-box {
+      border: 2px solid var(--accent);
+      border-radius: 4px;
+      padding: 16px;
+      position: relative;
+    }
+    .structure-box::before {
+      content: '[ ]';
+      position: absolute;
+      top: -12px; left: 16px;
+      background: var(--bg-2);
+      color: var(--accent);
+      font-family: var(--font-h);
+      padding: 0 8px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1080px) {
+      .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .split { grid-template-columns: 1fr; gap: 40px; }
+      .nav-cta { display: none; }
+    }
+    @media (max-width: 880px) {
+      .nav { display: none; }
+      .burger { display: grid; }
+    }
+    @media (max-width: 620px) {
+      .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .header-inner { justify-content: space-between; }
+      .card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-a" aria-hidden="true"></div>
+  <div class="blob blob-b" aria-hidden="true"></div>
+
+  <header>
+    <div class="wrap header-inner">
+      <a href="index.html" class="logo">ЛАМА<span style="color:var(--accent)">.</span></a>
+      <nav class="nav">
+        <a href="index.html" data-i18n="nav_home">Главная</a>
+        <a href="#services" data-i18n="nav_srv">Услуги</a>
+        <a href="#portfolio" data-i18n="nav_cases">Кейсы</a>
+        <a href="#contact" data-i18n="nav_contact">Контакты</a>
+      </nav>
+      <div class="controls">
+        <a href="#contact" class="btn btn-primary nav-cta" style="padding: 10px 20px; font-size: 0.9rem;" data-i18n="nav_cta">3D-макет</a>
+        <button class="icon-btn" data-theme-btn onclick="toggleTheme()" aria-pressed="true" aria-label="Тема">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button class="icon-btn lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+        <button class="icon-btn burger" onclick="toggleMenu()" aria-label="Меню">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" onclick="toggleMenu()" data-i18n="nav_home">Главная</a>
+    <a href="#services" onclick="toggleMenu()" data-i18n="nav_srv">Услуги</a>
+    <a href="#portfolio" onclick="toggleMenu()" data-i18n="nav_cases">Кейсы</a>
+    <a href="#contact" onclick="toggleMenu()" data-i18n="nav_contact">Контакты</a>
+    <a href="#contact" onclick="toggleMenu()" class="btn btn-primary" style="margin-top: 24px;" data-i18n="nav_cta">3D-макет</a>
+  </div>
+
+  <main>
+    <!-- 01. HERO -->
+    <section class="section" style="min-height: 100svh; display: flex; align-items: center; padding-top: 100px;">
+      <div class="wrap split">
+        <div>
+          <div class="tag reveal" data-i18n="hero_tag">Lama Space — Стенды и Конструкции</div>
+          <h1 class="reveal" style="--d: .1s" data-i18n="hero_title">Инженерия пространства. Без компромиссов.</h1>
+          <p class="reveal" style="--d: .2s; font-size: 1.3rem; margin-bottom: 40px;" data-i18n="hero_sub">Проектируем и строим выставочные стенды, торговое оборудование и промо-зоны. С 3D-визуализацией, гарантией надежности и монтажом под ключ.</p>
+          <div class="reveal" style="--d: .3s; display: flex; gap: 16px; flex-wrap: wrap;">
+            <a href="#contact" class="btn btn-primary" data-i18n="hero_btn">Заказать 3D-макет</a>
+            <a href="#portfolio" class="btn" data-i18n="hero_btn2">Смотреть кейсы</a>
+          </div>
+        </div>
+        <div class="reveal blueprint-grid" style="--d: .4s; height: 500px; display: grid; place-items: center; background-color: var(--bg-2);">
+          <div style="z-index: 1; font-family: var(--font-h); font-size: 3rem; color: var(--accent); display: flex; flex-direction: column; align-items: center; gap: 16px;">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 21h18M5 21V7l8-4 8 4v14M9 21v-6h6v6"/></svg>
+            <span>3D</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02. ДОВЕРИЕ (Marquee) -->
+    <div class="marquee">
+      <div class="marquee-content">
+        <span>Сварка</span> <span>•</span> <span>ЧПУ-фрезеровка</span> <span>•</span> <span>3D-моделирование</span> <span>•</span> <span>МДФ</span> <span>•</span> <span>Композит</span> <span>•</span> <span>Стекло</span> <span>•</span>
+        <span>Сварка</span> <span>•</span> <span>ЧПУ-фрезеровка</span> <span>•</span> <span>3D-моделирование</span> <span>•</span> <span>МДФ</span> <span>•</span> <span>Композит</span> <span>•</span> <span>Стекло</span> <span>•</span>
+      </div>
+    </div>
+
+    <!-- 03. ПРОБЛЕМА (PAS - Problem) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <div class="tag reveal" style="border-color: var(--accent-2); color: var(--accent-2);" data-i18n="p_tag">Риски, которые мы убираем</div>
+          <h2 class="reveal" style="--d: .1s" data-i18n="p_title">Стенд развалился на выставке?</h2>
+          <p class="reveal" style="--d: .2s" data-i18n="p_text">Обидно, когда вы вложили миллионы в продукт, а ваш стенд шатается, краска облезла, а розетки не работают. Или хуже — конструкция не влезла в габариты застройки. Мы знаем эти боли и исключаем их на этапе чертежа.</p>
+        </div>
+        <div class="reveal" style="--d: .3s; height: 300px; background: var(--bg-2); border-radius: var(--rad); border: 1px solid var(--line); display: grid; place-items: center; font-size: 4rem; color: var(--accent-2);">
+          📐
+        </div>
+      </div>
+    </section>
+
+    <!-- 04. РЕШЕНИЕ (PAS - Solution) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal structure-box" style="--d: .1s; height: 300px; display: grid; place-items: center; background: var(--bg);">
+           <div style="font-size: 4rem; color: var(--accent);">📐</div>
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="s_title">Мы не строим на глаз. Мы моделируем.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="s_text">Каждый проект начинается с 3D-визуализации. Вы видите, как будет выглядеть стенд, где будут розетки, как падает свет. Только после вашего «Ок» мы запускаем станки. Это исключает переделки и сюрпризы на монтаже.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn btn-primary" data-i18n="s_btn">Обсудить проект</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05. УСЛУГИ (Interest) -->
+    <section class="section" id="services">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="srv_title">Что мы проектируем и строим</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s">
+            <div class="card-icon">🏗</div>
+            <h3 data-i18n="s1_title">Выставочные стенды</h3>
+            <p data-i18n="s1_text">От линейных до эксклюзивных двухэтажных конструкций. Соблюдение регламентов застройки.</p>
+          </div>
+          <div class="card reveal" style="--d: .2s">
+            <div class="card-icon">🛍</div>
+            <h3 data-i18n="s2_title">Торговое оборудование</h3>
+            <p data-i18n="s2_text">Витрины, стеллажи, острова. Для магазинов, шоурумов и ретейла.</p>
+          </div>
+          <div class="card reveal" style="--d: .3s">
+            <div class="card-icon">🎪</div>
+            <h3 data-i18n="s3_title">Промо-зоны</h3>
+            <p data-i18n="s3_text">Временные конструкции для активаций. Быстросборные и мобильные.</p>
+          </div>
+          <div class="card reveal" style="--d: .4s">
+            <div class="card-icon">🎤</div>
+            <h3 data-i18n="s4_title">Сцены и подиумы</h3>
+            <p data-i18n="s4_text">Сборно-разборные конструкции для мероприятий с расчетом нагрузок.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="srv_btn">Получить консультацию</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06. ТЕХНОЛОГИИ (Desire) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="mat_title">Промышленный подход</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="mat_text">Мы используем только каркасные материалы, рассчитанные на многократную сборку и большие нагрузки. Сварка, покраска, фрезеровка — всё под контролем технологов.</p>
+        </div>
+        <div class="grid-4 reveal" style="--d: .2s; grid-template-columns: 1fr 1fr;">
+          <div class="card" style="padding: 20px; text-align: center; border-color: var(--accent);"><strong data-i18n="m1">Сталь</strong></div>
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m2">Алюминий</strong></div>
+          <div class="card" style="padding: 20px; text-align: center;"><strong data-i18n="m3">МДФ</strong></div>
+          <div class="card" style="padding: 20px; text-align: center; border-color: var(--accent-2);"><strong data-i18n="m4">Акрил</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07. ПРОЦЕСС (Desire) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="proc_title">От эскиза до готового объекта</h2>
+        <div class="grid-4" style="margin-top: 60px;">
+          <div class="reveal" style="--d: .1s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">01</div>
+            <h3 data-i18n="p1_title">Брифинг</h3>
+            <p data-i18n="p1_text">Изучаем задачу, площадку и регламент мероприятия.</p>
+          </div>
+          <div class="reveal" style="--d: .2s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">02</div>
+            <h3 data-i18n="p2_title">3D-проект</h3>
+            <p data-i18n="p2_text">Готовим визуализацию с привязкой к местности и расчетом сметы.</p>
+          </div>
+          <div class="reveal" style="--d: .3s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">03</div>
+            <h3 data-i18n="p3_title">Цех</h3>
+            <p data-i18n="p3_text">Сварка каркаса, покраска, монтаж электрики и графики.</p>
+          </div>
+          <div class="reveal" style="--d: .4s">
+            <div style="font-family: var(--font-h); font-size: 3rem; color: var(--accent); margin-bottom: 16px;">04</div>
+            <h3 data-i18n="p4_title">Монтаж</h3>
+            <p data-i18n="p4_text">Собираем на площадке, сдаем по акту. Работаем ночью, если нужно.</p>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .5s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn btn-primary" data-i18n="proc_btn">Вызвать инженера</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08. ЦИФРЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap grid-4">
+        <div class="reveal" style="text-align: center;">
+          <div class="stat-num" data-counter="450">0</div>
+          <p data-i18n="stat1">Собранных стендов</p>
+        </div>
+        <div class="reveal" style="--d: .1s; text-align: center;">
+          <div class="stat-num" data-counter="15">0</div>
+          <p data-i18n="stat2">Дней на проект (среднее)</p>
+        </div>
+        <div class="reveal" style="--d: .2s; text-align: center;">
+          <div class="stat-num" data-counter="0">0</div>
+          <p data-i18n="stat3">Случаев падения конструкций</p>
+        </div>
+        <div class="reveal" style="--d: .3s; text-align: center;">
+          <div class="stat-num" data-counter="1000">0</div>
+          <p data-i18n="stat4">Кв.м. цеха</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09. КЕЙСЫ (Desire) -->
+    <section class="section" id="portfolio">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="case_title">Наши объекты</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #1e293b, #334155); display: grid; place-items: center; color: var(--accent); font-family: var(--font-h); font-size: 1.5rem;">EXPO 2 этажа</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c1_title">Стенд для "ТехноПром"</h3>
+              <p data-i18n="c1_text">Двухэтажная конструкция с переговорными и открытой террасой.</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .2s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #1e293b, #334155); display: grid; place-items: center; color: var(--accent); font-family: var(--font-h); font-size: 1.5rem;">RETAIL</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c2_title">Витрины для "Кофе"</h3>
+              <p data-i18n="c2_text">Торговое оборудование с подсветкой и скрытой проводкой.</p>
+            </div>
+          </div>
+          <div class="card reveal" style="--d: .3s; padding: 0; overflow: hidden; border: none; background: var(--bg-2);">
+            <div style="height: 300px; background: linear-gradient(45deg, #1e293b, #334155); display: grid; place-items: center; color: var(--accent); font-family: var(--font-h); font-size: 1.5rem;">STAGE</div>
+            <div style="padding: 24px;">
+              <h3 data-i18n="c3_title">Сцена для фестиваля</h3>
+              <p data-i18n="c3_text">Расчет ветровых нагрузок, безопасность превыше всего.</p>
+            </div>
+          </div>
+        </div>
+        <div class="reveal" style="--d: .4s; margin-top: 40px; text-align: center;">
+          <a href="#contact" class="btn" data-i18n="case_btn">Хочу такой проект</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. ПРОИЗВОДСТВО (Trust) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap split">
+        <div class="reveal blueprint-grid" style="--d: .1s; height: 400px; display: grid; place-items: center; background-color: var(--bg);">
+          <span style="z-index: 1; color: var(--muted);">[Фото сварочного цеха]</span>
+        </div>
+        <div>
+          <h2 class="reveal" style="--d: .2s" data-i18n="prod_title">Свой цех — это скорость.</h2>
+          <p class="reveal" style="--d: .3s" data-i18n="prod_text">Когда до выставки неделя, а стенд еще не готов — спасает только собственное производство. У нас есть всё для оперативного запуска: от листогиба до покрасочной камеры.</p>
+          <div class="reveal" style="--d: .4s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="prod_btn">Приехать в цех</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. ОСНОВАТЕЛИ (Trust) -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="team_title">Те, кто проектирует</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team1">Константин Родин</h3>
+            <p style="color: var(--accent);" data-i18n="team1_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .2s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">👤</div>
+            <h3 data-i18n="team2">Юлия Горшкова</h3>
+            <p style="color: var(--accent);" data-i18n="team2_role">Со-основатель</p>
+          </div>
+          <div class="card reveal" style="--d: .3s; text-align: center; background: var(--bg-2);">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); margin: 0 auto 24px; display: grid; place-items: center; font-size: 2rem;">📐</div>
+            <h3 data-i18n="team3">Инженеры-конструкторы</h3>
+            <p style="color: var(--accent);" data-i18n="team3_role">Расчет нагрузок</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. ОТЗЫВЫ (Social Proof) -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap">
+        <h2 class="reveal" data-i18n="rev_title">Отзывы</h2>
+        <div class="grid-3" style="margin-top: 60px;">
+          <div class="card reveal" style="--d: .1s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Собрали стенд за 4 дня. Монтажники работали ночью, чтобы успеть к открытию. Огромное спасибо за ответственность".</p>
+            <div style="font-weight: 600;">Сергей, директор по маркетингу</div>
+          </div>
+          <div class="card reveal" style="--d: .2s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"3D-визуализация — это то, что нас подкупило. Мы точно знали, что получим. Никаких сюрпризов".</p>
+            <div style="font-weight: 600;">Анна, бренд-менеджер</div>
+          </div>
+          <div class="card reveal" style="--d: .3s; background: var(--bg);">
+            <p style="font-style: italic; margin-bottom: 24px;">"Конструкция выдержала толпу на фестивале. Ничего не шаталось. Инженерный подход чувствуется".</p>
+            <div style="font-weight: 600;">Игорь, организатор мероприятий</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. ГАРАНТИИ (Risk Reversal) -->
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="gar_title">Гарантия надежности</h2>
+          <p class="reveal" style="--d: .1s" data-i18n="gar_text">Мы даем гарантию на несущие конструкции 3 года. Все расчеты проверяются главным инженером. Если стенд не пройдет технадзор площадки — мы переделаем его за свой счет.</p>
+          <div class="reveal" style="--d: .2s; margin-top: 24px;">
+            <a href="#contact" class="btn" data-i18n="gar_btn">Узнать условия</a>
+          </div>
+        </div>
+        <div class="grid-3 reveal" style="--d: .3s; grid-template-columns: 1fr;">
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g1">Соответствие ГОСТ и техрегламентам</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g2">Фиксированная смета</strong></div>
+          </div>
+          <div class="card" style="padding: 24px; display: flex; align-items: center; gap: 16px; background: var(--bg-2);">
+            <div style="color: var(--accent); font-size: 1.5rem;">✓</div>
+            <div><strong data-i18n="g3">Шеф-монтаж на площадке</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. FAQ -->
+    <section class="section" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="wrap" style="max-width: 800px;">
+        <h2 class="reveal" style="text-align: center; margin-bottom: 60px;" data-i18n="faq_title">Вопросы</h2>
+        
+        <div class="faq-item reveal" style="--d: .1s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f1_q">За сколько дней до выставки нужно заказывать стенд?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f1_a">Оптимально — за 3-4 недели. Это время на 3D-проект, согласование, производство и запас на форс-мажор. Но мы умеем работать и в режиме «пожар» (за 5-7 дней).</p></div>
+        </div>
+        
+        <div class="faq-item reveal" style="--d: .2s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f2_q">Вы работаете в других городах?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f2_a">Да, производим у себя, а монтажную бригаду отправляем на площадку в любой город России. Шеф-монтаж включен в стоимость.</p></div>
+        </div>
+
+        <div class="faq-item reveal" style="--d: .3s">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="f3_q">Можно ли использовать стенд повторно?</span>
+            <span style="color: var(--accent);">+</span>
+          </div>
+          <div class="faq-a"><p data-i18n="f3_a">Да, мы проектируем каркасные стенды с расчетом на многократную сборку. Вы сможете использовать его на нескольких выставках, меняя только графику.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15. ВЫЗОВ (Urgency) -->
+    <section class="section" style="text-align: center;">
+      <div class="wrap">
+        <h2 class="reveal" style="--d: .1s; font-size: clamp(2rem, 5vw, 4rem); max-width: 900px; margin-inline: auto; line-height: 1.2;" data-i18n="phil_title">«Ваш бизнес заслуживает прочного фундамента».</h2>
+        <div class="reveal" style="--d: .2s; margin-top: 40px;">
+          <a href="#contact" class="btn btn-primary" style="font-size: 1.1rem; padding: 20px 40px;" data-i18n="phil_btn">Обсудить конструкцию</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16. КОНТАКТЫ (Action) -->
+    <section class="section" id="contact" style="background: var(--bg-2); border-top: 1px solid var(--line);">
+      <div class="wrap split">
+        <div>
+          <h2 class="reveal" data-i18n="cont_title">Заказать 3D-макет?</h2>
+          <p class="reveal" style="--d: .1s; margin-bottom: 40px;" data-i18n="cont_text">Оставьте заявку. Мы уточним детали, предложим концепцию и сделаем визуализацию. Вы увидите свой стенд до того, как он будет построен.</p>
+          <div class="reveal" style="--d: .2s; font-family: var(--font-h); font-size: 1.2rem;">space@lama.ru</div>
+          <div class="reveal" style="--d: .3s; font-family: var(--font-h); font-size: 1.2rem; margin-top: 8px;">+7 (999) 123-45-67</div>
+        </div>
+        
+        <form class="reveal" style="--d: .3s" id="leadForm" novalidate>
+          <div class="form-group">
+            <input type="text" name="name" data-i18n-ph="form_name" placeholder="Ваше имя" required>
+          </div>
+          <div class="form-group">
+            <input type="tel" name="phone" data-i18n-ph="form_phone" placeholder="Телефон / Telegram" required>
+          </div>
+          <div class="form-group">
+            <textarea name="msg" rows="3" data-i18n-ph="form_msg" placeholder="Какая конструкция нужна? (площадь, сроки)"></textarea>
+          </div>
+          
+          <input type="text" name="company_website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="form_btn">Вызвать инженера</button>
+          <p style="font-size: 0.8rem; margin-top: 12px; text-align: center; opacity: 0.6;" data-i18n="form_policy">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top: 1px solid var(--line); padding: 40px 0; background: var(--bg);">
+    <div class="wrap" style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 РПК «Лама». <span data-i18n="foot_rights">Все права защищены.</span></div>
+      <div><a href="index.html" style="color: var(--accent);" data-i18n="nav_home">На главную</a></div>
+      <div data-i18n="foot_method">Сделано по методологии «СВЕТ»</div>
+    </div>
+  </footer>
+
+  <script>
+    const TKEY = 'lama-theme';
+    const savedTheme = localStorage.getItem(TKEY);
+    document.documentElement.dataset.theme = savedTheme || 'dark';
+    updateThemeBtn();
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem(TKEY, next);
+      updateThemeBtn();
+    }
+    function updateThemeBtn() {
+      const btn = document.querySelector('[data-theme-btn]');
+      if(btn) btn.setAttribute('aria-pressed', document.documentElement.dataset.theme === 'dark');
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const isActive = menu.classList.contains('active');
+      if (isActive) {
+        menu.classList.remove('active');
+        document.body.classList.remove('menu-open');
+      } else {
+        menu.classList.add('active');
+        document.body.classList.add('menu-open');
+      }
+    }
+
+    const I18N = {
+      ru: {
+        nav_home: 'Главная', nav_srv: 'Услуги', nav_cases: 'Кейсы', nav_contact: 'Контакты', nav_cta: '3D-макет',
+        hero_tag: 'Lama Space — Стенды и Конструкции',
+        hero_title: 'Инженерия пространства. Без компромиссов.',
+        hero_sub: 'Проектируем и строим выставочные стенды, торговое оборудование и промо-зоны. С 3D-визуализацией, гарантией надежности и монтажом под ключ.',
+        hero_btn: 'Заказать 3D-макет', hero_btn2: 'Смотреть кейсы',
+        p_tag: 'Риски, которые мы убираем',
+        p_title: 'Стенд развалился на выставке?',
+        p_text: 'Обидно, когда вы вложили миллионы в продукт, а ваш стенд шатается, краска облезла, а розетки не работают. Или хуже — конструкция не влезла в габариты застройки. Мы знаем эти боли и исключаем их на этапе чертежа.',
+        s_title: 'Мы не строим на глаз. Мы моделируем.',
+        s_text: 'Каждый проект начинается с 3D-визуализации. Вы видите, как будет выглядеть стенд, где будут розетки, как падает свет. Только после вашего «Ок» мы запускаем станки. Это исключает переделки и сюрпризы на монтаже.',
+        s_btn: 'Обсудить проект',
+        srv_title: 'Что мы проектируем и строим',
+        s1_title: 'Выставочные стенды', s1_text: 'От линейных до эксклюзивных двухэтажных конструкций. Соблюдение регламентов застройки.',
+        s2_title: 'Торговое оборудование', s2_text: 'Витрины, стеллажи, острова. Для магазинов, шоурумов и ретейла.',
+        s3_title: 'Промо-зоны', s3_text: 'Временные конструкции для активаций. Быстросборные и мобильные.',
+        s4_title: 'Сцены и подиумы', s4_text: 'Сборно-разборные конструкции для мероприятий с расчетом нагрузок.',
+        srv_btn: 'Получить консультацию',
+        mat_title: 'Промышленный подход',
+        mat_text: 'Мы используем только каркасные материалы, рассчитанные на многократную сборку и большие нагрузки. Сварка, покраска, фрезеровка — всё под контролем технологов.',
+        m1: 'Сталь', m2: 'Алюминий', m3: 'МДФ', m4: 'Акрил',
+        proc_title: 'От эскиза до готового объекта',
+        p1_title: 'Брифинг', p1_text: 'Изучаем задачу, площадку и регламент мероприятия.',
+        p2_title: '3D-проект', p2_text: 'Готовим визуализацию с привязкой к местности и расчетом сметы.',
+        p3_title: 'Цех', p3_text: 'Сварка каркаса, покраска, монтаж электрики и графики.',
+        p4_title: 'Монтаж', p4_text: 'Собираем на площадке, сдаем по акту. Работаем ночью, если нужно.',
+        proc_btn: 'Вызвать инженера',
+        stat1: 'Собранных стендов', stat2: 'Дней на проект (среднее)', stat3: 'Случаев падения конструкций', stat4: 'Кв.м. цеха',
+        case_title: 'Наши объекты',
+        c1_title: 'Стенд для "ТехноПром"', c1_text: 'Двухэтажная конструкция с переговорными и открытой террасой.',
+        c2_title: 'Витрины для "Кофе"', c2_text: 'Торговое оборудование с подсветкой и скрытой проводкой.',
+        c3_title: 'Сцена для фестиваля', c3_text: 'Расчет ветровых нагрузок, безопасность превыше всего.',
+        case_btn: 'Хочу такой проект',
+        prod_title: 'Свой цех — это скорость.',
+        prod_text: 'Когда до выставки неделя, а стенд еще не готов — спасает только собственное производство. У нас есть всё для оперативного запуска: от листогиба до покрасочной камеры.',
+        prod_btn: 'Приехать в цех',
+        team_title: 'Те, кто проектирует', team1: 'Константин Родин', team1_role: 'Со-основатель', team2: 'Юлия Горшкова', team2_role: 'Со-основатель', team3: 'Инженеры-конструкторы', team3_role: 'Расчет нагрузок',
+        rev_title: 'Отзывы',
+        gar_title: 'Гарантия надежности', gar_text: 'Мы даем гарантию на несущие конструкции 3 года. Все расчеты проверяются главным инженером. Если стенд не пройдет технадзор площадки — мы переделаем его за свой счет.', gar_btn: 'Узнать условия',
+        g1: 'Соответствие ГОСТ и техрегламентам', g2: 'Фиксированная смета', g3: 'Шеф-монтаж на площадке',
+        faq_title: 'Вопросы',
+        f1_q: 'За сколько дней до выставки нужно заказывать стенд?', f1_a: 'Оптимально — за 3-4 недели. Это время на 3D-проект, согласование, производство и запас на форс-мажор. Но мы умеем работать и в режиме «пожар» (за 5-7 дней).',
+        f2_q: 'Вы работаете в других городах?', f2_a: 'Да, производим у себя, а монтажную бригаду отправляем на площадку в любой город России. Шеф-монтаж включен в стоимость.',
+        f3_q: 'Можно ли использовать стенд повторно?', f3_a: 'Да, мы проектируем каркасные стенды с расчетом на многократную сборку. Вы сможете использовать его на нескольких выставках, меняя только графику.',
+        phil_title: '«Ваш бизнес заслуживает прочного фундамента».', phil_btn: 'Обсудить конструкцию',
+        cont_title: 'Заказать 3D-макет?', cont_text: 'Оставьте заявку. Мы уточним детали, предложим концепцию и сделаем визуализацию. Вы увидите свой стенд до того, как он будет построен.',
+        form_name: 'Ваше имя', form_phone: 'Телефон / Telegram', form_msg: 'Какая конструкция нужна? (площадь, сроки)', form_btn: 'Вызвать инженера', form_policy: 'Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.',
+        foot_rights: 'Все права защищены.', foot_method: 'Сделано по методологии «СВЕТ»'
+      },
+      en: {
+        nav_home: 'Home', nav_srv: 'Services', nav_cases: 'Cases', nav_contact: 'Contact', nav_cta: '3D Layout',
+        hero_tag: 'Lama Space — Stands & Structures',
+        hero_title: 'Engineering of space. No compromises.',
+        hero_sub: 'We design and build exhibition stands, retail equipment, and promo zones. With 3D visualization, reliability guarantee, and turnkey installation.',
+        hero_btn: 'Order 3D layout', hero_btn2: 'View cases',
+        p_tag: 'Risks we eliminate',
+        p_title: 'Did the stand fall apart at the exhibition?',
+        p_text: 'It\'s a shame when you invest millions in a product, but your stand wobbles, the paint peeled off, and the sockets don\'t work. Or worse — the structure didn\'t fit the construction dimensions. We know these pains and eliminate them at the blueprint stage.',
+        s_title: 'We don\'t build by eye. We model.',
+        s_text: 'Every project starts with 3D visualization. You see how the stand will look, where the sockets will be, how the light falls. Only after your "Ok" do we start the machines. This eliminates rework and surprises during installation.',
+        s_btn: 'Discuss project',
+        srv_title: 'What we design and build',
+        s1_title: 'Exhibition stands', s1_text: 'From linear to exclusive two-story structures. Compliance with construction regulations.',
+        s2_title: 'Retail equipment', s2_text: 'Showcases, shelving, islands. For shops, showrooms, and retail.',
+        s3_title: 'Promo zones', s3_text: 'Temporary structures for activations. Quick-assembly and mobile.',
+        s4_title: 'Stages & podiums', s4_text: 'Collapsible structures for events with load calculation.',
+        srv_btn: 'Get a consultation',
+        mat_title: 'Industrial approach',
+        mat_text: 'We use only frame materials designed for repeated assembly and heavy loads. Welding, painting, milling — all under the control of technologists.',
+        m1: 'Steel', m2: 'Aluminum', m3: 'MDF', m4: 'Acrylic',
+        proc_title: 'From sketch to finished object',
+        p1_title: 'Briefing', p1_text: 'Studying the task, site, and event regulations.',
+        p2_title: '3D project', p2_text: 'Preparing visualization with location binding and estimate calculation.',
+        p3_title: 'Workshop', p3_text: 'Frame welding, painting, electrical and graphics installation.',
+        p4_title: 'Installation', p4_text: 'Assembling on site, handing over by act. Working at night if needed.',
+        proc_btn: 'Call an engineer',
+        stat1: 'Stands assembled', stat2: 'Days per project (average)', stat3: 'Cases of structure collapse', stat4: 'Sq.m of workshop',
+        case_title: 'Our objects',
+        c1_title: 'Stand for "TechnoProm"', c1_text: 'Two-story structure with meeting rooms and an open terrace.',
+        c2_title: 'Showcases for "Coffee"', c2_text: 'Retail equipment with lighting and hidden wiring.',
+        c3_title: 'Stage for a festival', c3_text: 'Wind load calculation, safety above all.',
+        case_btn: 'I want such a project',
+        prod_title: 'Own workshop is speed.',
+        prod_text: 'When there is a week left before the exhibition and the stand is not ready — only own production saves. We have everything for operational launch: from a bending machine to a spray booth.',
+        prod_btn: 'Visit the workshop',
+        team_title: 'Those who design', team1: 'Konstantin Rodin', team1_role: 'Co-founder', team2: 'Yulia Gorshkova', team2_role: 'Co-founder', team3: 'Design engineers', team3_role: 'Load calculation',
+        rev_title: 'Reviews',
+        gar_title: 'Reliability guarantee', gar_text: 'We give a 3-year warranty on load-bearing structures. All calculations are checked by the chief engineer. If the stand does not pass the site\'s technical supervision — we will redo it at our own expense.', gar_btn: 'Learn conditions',
+        g1: 'Compliance with GOST and technical regulations', g2: 'Fixed estimate', g3: 'Supervision on site',
+        faq_title: 'FAQ',
+        f1_q: 'How many days before the exhibition should I order a stand?', f1_a: 'Optimally — 3-4 weeks in advance. This is the time for the 3D project, approval, production, and a margin for force majeure. But we can also work in "fire" mode (5-7 days).',
+        f2_q: 'Do you work in other cities?', f2_a: 'Yes, we produce locally, and send the installation team to the site in any city in Russia. Supervision is included in the price.',
+        f3_q: 'Can the stand be reused?', f3_a: 'Yes, we design frame stands with the expectation of repeated assembly. You can use it at several exhibitions, changing only the graphics.',
+        phil_title: '"Your business deserves a solid foundation."', phil_btn: 'Discuss structure',
+        cont_title: 'Order a 3D layout?', cont_text: 'Leave a request. We will clarify the details, propose a concept, and make a visualization. You will see your stand before it is built.',
+        form_name: 'Your name', form_phone: 'Phone / Telegram', form_msg: 'What structure is needed? (area, deadlines)', form_btn: 'Call an engineer', form_policy: 'By clicking the button, you agree to the privacy policy.',
+        foot_rights: 'All rights reserved.', foot_method: 'Made with "SVET" methodology'
+      }
+    };
+
+    const LKEY = 'lama-lang';
+    let currentLang = localStorage.getItem(LKEY) || 'ru';
+
+    function applyLang(l) {
+      document.documentElement.lang = l;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = I18N[l][el.dataset.i18n];
+        if (v) el.innerHTML = v;
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const v = I18N[l][el.dataset.i18nPh];
+        if (v) el.placeholder = v;
+      });
+      const btn = document.getElementById('langBtn');
+      if(btn) btn.textContent = l === 'ru' ? 'EN' : 'RU';
+      localStorage.setItem(LKEY, l);
+      currentLang = l;
+    }
+    function toggleLang() { applyLang(currentLang === 'ru' ? 'en' : 'ru'); }
+    applyLang(currentLang);
+
+    (function() {
+      if (matchMedia('(hover: none)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const a = document.querySelector('.blob-a'), b = document.querySelector('.blob-b');
+      let tx = 0, ty = 0, cx = 0, cy = 0;
+      addEventListener('pointermove', e => {
+        tx = e.clientX / innerWidth - .5;
+        ty = e.clientY / innerHeight - .5;
+      }, { passive: true });
+      (function loop() {
+        cx += (tx - cx) * .06;
+        cy += (ty - cy) * .06;
+        a.style.transform = `translate3d(${cx * 50}px, ${cy * 50}px, 0)`;
+        b.style.transform = `translate3d(${cx * -70}px, ${cy * -70}px, 0)`;
+        requestAnimationFrame(loop);
+      })();
+    })();
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    const counterIo = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          const target = +el.dataset.counter;
+          const duration = 2000;
+          const start = performance.now();
+          const update = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(easeOut * target);
+            if (progress < 1) requestAnimationFrame(update);
+            else el.textContent = target;
+          };
+          requestAnimationFrame(update);
+          counterIo.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('[data-counter]').forEach(el => counterIo.observe(el));
+
+    function toggleFaq(el) {
+      const item = el.parentElement;
+      const isActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+      if (!isActive) {
+        item.classList.add('active');
+        el.querySelector('span:last-child').textContent = '−';
+      } else {
+        el.querySelector('span:last-child').textContent = '+';
+      }
+    }
+
+    const LEAD_CONFIG = { channel: 'webhook', endpoint: 'https://your-crm.ru/api/leads' };
+    async function submitLead(lead) {
+      return new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000));
+    }
+
+    const form = document.getElementById('leadForm');
+    form.dataset.loadedAt = Date.now();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      const phone = form.phone.value.replace(/[^\d+]/g, '');
+      const trap = form.company_website.value;
+      
+      if (trap) return; 
+      if (name.length < 2 || phone.length < 10) {
+        alert(currentLang === 'ru' ? 'Заполните все поля.' : 'Please fill all fields.');
+        return;
+      }
+      if (Date.now() - form.dataset.loadedAt < 3000) return;
+
+      const btn = form.querySelector('button[type=submit]');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = currentLang === 'ru' ? 'Отправка...' : 'Sending...';
+      
+      try {
+        await submitLead({ name, phone, source: location.href, ts: Date.now() });
+        form.innerHTML = `<div class="form-success">${currentLang === 'ru' ? 'Заявка принята. Мы свяжемся с вами!' : 'Request accepted. We will contact you!'}</div>`;
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('Error');
+      }
+    });
+  </script>
+</body>
+</html>
